@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Social Hub - MuslimVerse</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <style>
+        .tab { cursor: pointer; padding: 10px 16px; border-bottom: 3px solid transparent; color: #6b7280; }
+        .tab.active { border-color: #059669; color: #059669; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-green-50">
+    <!-- Header -->
+    <header class="bg-green-700 text-white shadow-lg sticky top-0 z-20">
+        <nav class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="home.html" class="text-xl font-bold flex items-center">
+                <span class="mr-2 text-2xl">🕋</span>
+                <span>MuslimVerse</span>
+            </a>
+            <a href="home.html" class="text-sm font-semibold hover:bg-green-600 px-3 py-1 rounded-md transition-colors">Home</a>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-xl mx-auto p-4 md:p-8 space-y-8">
+        <!-- Request Management Section -->
+        <div class="bg-white rounded-lg shadow-lg">
+            <div class="flex border-b border-gray-200">
+                <div id="incoming-tab" class="tab active" onclick="switchTab('incoming')">Incoming Requests</div>
+                <div id="sent-tab" class="tab" onclick="switchTab('sent')">Sent Requests</div>
+            </div>
+            
+            <div id="incoming-content" class="p-4 space-y-4">
+                <p class="text-gray-500 text-center">Loading requests...</p>
+            </div>
+
+            <div id="sent-content" class="p-4 space-y-4 hidden">
+                 <p class="text-gray-500 text-center">Loading sent requests...</p>
+            </div>
+        </div>
+
+        <!-- Suggestions Section -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-4">People You May Know</h2>
+            <div id="suggestions-container" class="space-y-4">
+                 <p class="text-gray-500 text-center">Finding suggestions...</p>
+            </div>
+            <div id="see-more-container" class="text-center mt-6">
+                <button id="see-more-btn" class="hidden bg-gray-200 text-gray-800 font-semibold px-6 py-2 rounded-lg hover:bg-gray-300">See More</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3VEv_rdd3FElJupOnfGrBQuLjGwACsA8",
+            authDomain: "masklink-calling.firebaseapp.com",
+            databaseURL: "https://masklink-calling-default-rtdb.firebaseio.com",
+            projectId: "masklink-calling",
+            storageBucket: "masklink-calling.appspot.com",
+            messagingSenderId: "240213769733",
+            appId: "1:240213769733:web:53e35fbf17e4b4d284266c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+
+        let currentUserId = null;
+        let currentUserProfile = {};
+        let suggestedUserIds = [];
+        let displayedSuggestionCount = 0;
+
+        const incomingContent = document.getElementById('incoming-content');
+        const sentContent = document.getElementById('sent-content');
+        const suggestionsContainer = document.getElementById('suggestions-container');
+        const seeMoreBtn = document.getElementById('see-more-btn');
+
+        auth.onAuthStateChanged(user => {
+            if (!user) { window.location.href = "login.html"; return; }
+            currentUserId = user.uid;
+            db.ref('userProfiles/' + currentUserId).once('value').then(snap => currentUserProfile = snap.val() || {});
+            
+            loadIncomingRequests();
+            loadSentRequests();
+            prepareSuggestions();
+
+            seeMoreBtn.onclick = () => renderSuggestions(5);
+        });
+
+        function switchTab(tabName) {
+            document.getElementById('incoming-tab').classList.toggle('active', tabName === 'incoming');
+            document.getElementById('sent-tab').classList.toggle('active', tabName === 'sent');
+            incomingContent.classList.toggle('hidden', tabName !== 'incoming');
+            sentContent.classList.toggle('hidden', tabName !== 'sent');
+        }
+
+        function timeAgo(timestamp) {
+            const now = Date.now();
+            const seconds = Math.floor((now - timestamp) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + " years ago";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + " months ago";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + " days ago";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + " hours ago";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + " minutes ago";
+            return Math.floor(seconds) + " seconds ago";
+        }
+
+        async function loadIncomingRequests() {
+            const requestsRef = db.ref(`friendRequests/${currentUserId}`);
+            const myFriendsSnap = await db.ref(`friends/${currentUserId}`).once('value');
+            const myFriends = Object.keys(myFriendsSnap.val() || {});
+
+            requestsRef.on('value', snapshot => {
+                incomingContent.innerHTML = '';
+                if (!snapshot.exists()) {
+                    incomingContent.innerHTML = '<p class="text-gray-500 text-center">No new friend requests.</p>';
+                    return;
+                }
+                
+                snapshot.forEach(async requestSnapshot => {
+                    const senderId = requestSnapshot.key;
+                    const requestData = requestSnapshot.val();
+                    
+                    const senderFriendsSnap = await db.ref(`friends/${senderId}`).once('value');
+                    const senderFriends = Object.keys(senderFriendsSnap.val() || {});
+                    const mutualFriendsCount = myFriends.filter(friendId => senderFriends.includes(friendId)).length;
+                    
+                    const requestDiv = document.createElement('div');
+                    requestDiv.id = `req-${senderId}`;
+                    requestDiv.className = 'p-4 bg-gray-50 rounded-lg border';
+                    requestDiv.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <a href="view_profile.html?uid=${senderId}" class="flex items-center space-x-4">
+                                <div class="text-4xl w-12 h-12 flex items-center justify-center bg-gray-200 rounded-full">${requestData.fromEmoji || '👤'}</div>
+                                <div>
+                                    <p class="font-bold text-gray-800">${requestData.fromName || 'A User'}</p>
+                                    <p class="text-sm text-gray-500">${mutualFriendsCount > 0 ? `${mutualFriendsCount} mutual friend(s)` : 'Wants to connect'}</p>
+                                </div>
+                            </a>
+                             <p class="text-xs text-gray-400">${timeAgo(requestData.timestamp)}</p>
+                        </div>
+                        <div class="flex space-x-2 mt-3 justify-end">
+                            <button onclick="acceptFriendRequest('${senderId}')" class="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-green-700">Accept</button>
+                            <button onclick="declineFriendRequest('${senderId}')" class="bg-gray-300 text-gray-800 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-400">Decline</button>
+                        </div>
+                    `;
+                    incomingContent.appendChild(requestDiv);
+                });
+            });
+        }
+        
+        function loadSentRequests() {
+            db.ref('friendRequests').on('value', snapshot => {
+                sentContent.innerHTML = '';
+                let found = false;
+                snapshot.forEach(receiverSnap => {
+                    if (receiverSnap.hasChild(currentUserId)) {
+                        found = true;
+                        const receiverId = receiverSnap.key;
+                        db.ref(`userProfiles/${receiverId}`).once('value', profileSnap => {
+                             const user = profileSnap.val();
+                             if (!user) return;
+                             const reqDiv = document.createElement('div');
+                             reqDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border';
+                             reqDiv.innerHTML = `
+                                <a href="view_profile.html?uid=${receiverId}" class="flex items-center space-x-3">
+                                    <div class="text-3xl w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full">${user.profileEmoji || '👤'}</div>
+                                    <span class="font-semibold">${user.fullName || 'User'}</span>
+                                </a>
+                                <button onclick="cancelFriendRequest('${receiverId}')" class="bg-yellow-500 text-white text-xs px-3 py-1 rounded-md hover:bg-yellow-600">Cancel</button>
+                            `;
+                             sentContent.appendChild(reqDiv);
+                        });
+                    }
+                });
+                if (!found) sentContent.innerHTML = '<p class="text-gray-500 text-center">You have no pending sent requests.</p>';
+            });
+        }
+
+        async function prepareSuggestions() {
+            const [myFriendsSnap, allUsersSnap, requestsSnap] = await Promise.all([
+                db.ref(`friends/${currentUserId}`).once('value'),
+                db.ref('userProfiles').once('value'),
+                db.ref('friendRequests').once('value')
+            ]);
+            
+            const myFriends = Object.keys(myFriendsSnap.val() || {});
+            const allUsers = allUsersSnap.val() || {};
+            const sentRequests = [];
+            requestsSnap.forEach(receiver => { if(receiver.hasChild(currentUserId)) sentRequests.push(receiver.key); });
+            const incomingRequests = Object.keys(requestsSnap.child(currentUserId).val() || {});
+
+            const friendsOfFriends = new Set();
+            for (const friendId of myFriends) {
+                const friendsOfFriendSnap = await db.ref(`friends/${friendId}`).once('value');
+                const friendsOfFriend = Object.keys(friendsOfFriendSnap.val() || {});
+                friendsOfFriend.forEach(fofId => friendsOfFriends.add(fofId));
+            }
+            
+            suggestedUserIds = Array.from(friendsOfFriends).filter(id => 
+                id !== currentUserId &&
+                !myFriends.includes(id) &&
+                !sentRequests.includes(id) &&
+                !incomingRequests.includes(id)
+            );
+            
+            // If not enough FoFs, suggest random users
+            if (suggestedUserIds.length < 10) {
+                 const allUserIds = Object.keys(allUsers);
+                 const randomUsers = allUserIds.filter(id => 
+                    id !== currentUserId &&
+                    !myFriends.includes(id) &&
+                    !sentRequests.includes(id) &&
+                    !incomingRequests.includes(id) &&
+                    !suggestedUserIds.includes(id)
+                 );
+                 suggestedUserIds.push(...randomUsers);
+            }
+
+            if (suggestedUserIds.length === 0) {
+                suggestionsContainer.innerHTML = '<p class="text-gray-500 text-center">No new suggestions right now.</p>';
+            } else {
+                 suggestionsContainer.innerHTML = '';
+                 renderSuggestions(5);
+            }
+        }
+        
+        function renderSuggestions(count) {
+            const newSuggestions = suggestedUserIds.slice(displayedSuggestionCount, displayedSuggestionCount + count);
+            if (newSuggestions.length === 0) {
+                seeMoreBtn.classList.add('hidden');
+                suggestionsContainer.innerHTML += '<p class="text-gray-500 text-center mt-4">No more suggestions.</p>';
+                return;
+            }
+
+            newSuggestions.forEach(userId => {
+                db.ref(`userProfiles/${userId}`).once('value').then(profileSnap => {
+                    const user = profileSnap.val();
+                    if(!user) return;
+                    const suggestionDiv = document.createElement('div');
+                    suggestionDiv.id = `sug-${userId}`;
+                    suggestionDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border';
+                    suggestionDiv.innerHTML = `
+                         <a href="view_profile.html?uid=${userId}" class="flex items-center space-x-3">
+                            <div class="text-3xl w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full">${user.profileEmoji || '👤'}</div>
+                            <div>
+                                <p class="font-semibold">${user.fullName || 'User'}</p>
+                                <p class="text-xs text-gray-500">@${user.username}</p>
+                            </div>
+                        </a>
+                        <button onclick="sendFriendRequestFromSuggestion('${userId}', this)" class="bg-blue-500 text-white text-xs px-3 py-1 rounded-md hover:bg-blue-600">Add Friend</button>
+                    `;
+                    suggestionsContainer.appendChild(suggestionDiv);
+                });
+            });
+
+            displayedSuggestionCount += newSuggestions.length;
+            seeMoreBtn.classList.toggle('hidden', displayedSuggestionCount >= suggestedUserIds.length);
+        }
+
+        function acceptFriendRequest(senderId) { const updates = {}; updates[`friends/${currentUserId}/${senderId}`] = true; updates[`friends/${senderId}/${currentUserId}`] = true; updates[`friendRequests/${currentUserId}/${senderId}`] = null; db.ref().update(updates); }
+        function declineFriendRequest(senderId) { db.ref(`friendRequests/${currentUserId}/${senderId}`).remove(); }
+        function cancelFriendRequest(receiverId) { db.ref(`friendRequests/${receiverId}/${currentUserId}`).remove(); }
+        function sendFriendRequestFromSuggestion(receiverId, button) {
+            db.ref(`friendRequests/${receiverId}/${currentUserId}`).set({ fromName: currentUserProfile.fullName, fromEmoji: currentUserProfile.profileEmoji, timestamp: firebase.database.ServerValue.TIMESTAMP });
+            button.textContent = 'Request Sent';
+            button.disabled = true;
+            button.className = 'bg-gray-400 text-white text-xs px-3 py-1 rounded-md cursor-not-allowed';
+        }
+
+    </script>
+</body>
+</html>
