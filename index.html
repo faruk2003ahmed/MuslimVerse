@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to MuslimVerse</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <!-- Tailwind CSS (for styling the loading message) -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-green-50 flex items-center justify-center min-h-screen">
+
+    <div class="text-center">
+        <h1 class="text-3xl font-extrabold text-green-700 mb-4">🕋 MuslimVerse</h1>
+        <p class="text-lg text-gray-600">Loading, please wait...</p>
+    </div>
+
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3VEv_rdd3FElJupOnfGrBQuLjGwACsA8",
+            authDomain: "masklink-calling.firebaseapp.com",
+            databaseURL: "https://masklink-calling-default-rtdb.firebaseio.com",
+            projectId: "masklink-calling",
+            storageBucket: "masklink-calling.appspot.com",
+            messagingSenderId: "240213769733",
+            appId: "1:240213769733:web:53e35fbf17e4b4d284266c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Listen for authentication state changes
+        auth.onAuthStateChanged(function(user) {
+            if (user) {
+                // User is signed in. Redirect to the home page.
+                console.log("User is logged in, redirecting to home.html");
+                window.location.href = 'home.html';
+            } else {
+                // No user is signed in. Redirect to the login page.
+                console.log("No user logged in, redirecting to login.html");
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+
+</body>
+</html>

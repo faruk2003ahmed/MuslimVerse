@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MuslimVerse – Login</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-green-50 flex items-center justify-center min-h-screen px-4">
+
+  <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+    <h1 class="text-3xl font-extrabold text-center text-green-700 mb-4">🕋 MuslimVerse</h1>
+    <h2 class="text-lg font-semibold mb-4 text-center">🔑 Login</h2>
+
+    <form onsubmit="login(); return false;">
+      <input id="email" type="email" placeholder="Email"
+        class="w-full p-3 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-300" />
+      <input id="password" type="password" placeholder="Password"
+        class="w-full p-3 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-300" />
+      <button type="submit"
+        class="w-full bg-green-600 text-white p-3 rounded font-semibold hover:bg-green-700 transition duration-200">
+        Login
+      </button>
+
+      <!-- Optional: Sign Up Link -->
+      <a href="signup.html" class="block text-center text-green-700 mt-4 hover:underline font-medium">
+        👉 Create a New Account
+      </a>
+    </form>
+
+    <p id="loginStatus" class="text-sm mt-4 text-center text-red-600"></p>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD3VEv_rdd3FElJupOnfGrBQuLjGwACsA8",
+      authDomain: "masklink-calling.firebaseapp.com",
+      databaseURL: "https://masklink-calling-default-rtdb.firebaseio.com",
+      projectId: "masklink-calling",
+      storageBucket: "masklink-calling.appspot.com",
+      messagingSenderId: "240213769733",
+      appId: "1:240213769733:web:53e35fbf17e4b4d284266c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const loginStatus = document.getElementById("loginStatus");
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          loginStatus.textContent = "✅ Login successful!";
+          setTimeout(() => {
+            // Replace this with your dashboard or home page
+            window.location.href = "home.html";
+          }, 1000);
+        })
+        .catch((error) => {
+          loginStatus.textContent = "❌ " + error.message;
+        });
+    }
+  </script>
+</body>
+</html>

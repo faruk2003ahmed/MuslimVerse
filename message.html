@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messages - MuslimVerse</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <style>
+        .chat-container-wrapper { height: calc(100vh - 68px); }
+        #messages, #user-list-container { scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .message-bubble { max-width: 80%; padding: 0.5rem 1rem; border-radius: 1.2rem; word-wrap: break-word; }
+        .message.sent .message-bubble { background-color: #059669; color: white; border-bottom-right-radius: 0.25rem; }
+        .message.received .message-bubble { background-color: #e5e7eb; color: #1f2937; border-bottom-left-radius: 0.25rem; }
+        .user-list-item.active { background-color: #d1fae5; }
+
+        /* --- STYLES FOR NEW FEATURES --- */
+        .online-indicator {
+            width: 10px;
+            height: 10px;
+            background-color: #34d399; /* Green dot */
+            border-radius: 50%;
+            border: 2px solid white;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+        .unread-badge {
+            background-color: #ef4444; /* Red badge */
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .message-meta {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            margin-top: 4px;
+        }
+        .message.sent .message-meta {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .read-receipt {
+            font-weight: bold;
+            color: #3b82f6; /* Blue Ticks */
+        }
+    </style>
+</head>
+<body class="bg-green-50">
+    <!-- Header -->
+    <header class="bg-green-700 text-white shadow-lg sticky top-0 z-20">
+        <nav class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="home.html" class="text-xl font-bold flex items-center">
+                <span class="mr-2 text-2xl">🕋</span>
+                <span>MuslimVerse</span>
+            </a>
+            <a href="home.html" class="text-sm font-semibold hover:bg-green-600 px-3 py-1 rounded-md transition-colors">Home</a>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto chat-container-wrapper">
+        <div id="chat-container" class="h-full bg-white shadow-lg md:grid md:grid-cols-[300px_1fr] relative overflow-hidden">
+            
+            <div id="user-list" class="h-full flex flex-col border-r border-gray-200">
+                <div class="p-4 border-b">
+                    <h2 class="text-lg font-semibold text-green-800">Friends</h2>
+                </div>
+                <div id="user-list-container" class="flex-grow overflow-y-auto"></div>
+            </div>
+
+            <div id="chat-window" class="hidden md:flex flex-col h-full absolute md:static top-0 left-0 w-full">
+                <div id="chat-header" class="p-3 border-b flex items-center bg-white z-10">
+                    <button id="back-button" class="md:hidden mr-2 p-2 rounded-full hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                    </button>
+                    <div id="chat-header-emoji" class="text-3xl w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full mr-3 relative"></div>
+                    <div>
+                        <h3 id="chat-header-name" class="text-lg font-bold text-gray-800"></h3>
+                        <p id="chat-header-status" class="text-xs text-gray-500"></p>
+                    </div>
+                </div>
+                
+                <div id="messages" class="flex-grow overflow-y-auto p-6 bg-gray-50">
+                    <div id="no-chat-selected" class="h-full flex items-center justify-center text-gray-500">
+                        <p>Select a friend to start messaging.</p>
+                    </div>
+                </div>
+
+                <div id="chat-input-area" class="p-4 border-t bg-white hidden">
+                    <div class="flex items-center space-x-3">
+                        <input id="message-input" type="text" placeholder="Type a message..." class="w-full py-2 px-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-400" />
+                        <button id="send-button" class="bg-green-600 hover:bg-green-700 text-white p-3 rounded-full flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3VEv_rdd3FElJupOnfGrBQuLjGwACsA8",
+            authDomain: "masklink-calling.firebaseapp.com",
+            databaseURL: "https://masklink-calling-default-rtdb.firebaseio.com",
+            projectId: "masklink-calling",
+            storageBucket: "masklink-calling.appspot.com",
+            messagingSenderId: "240213769733",
+            appId: "1:240213769733:web:53e35fbf17e4b4d284266c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+
+        // --- State Variables ---
+        let currentUserId = null;
+        let selectedUserId = null;
+        let activeChatId = null;
+        let chatListeners = {};
+
+        // --- Element References ---
+        const userListContainer = document.getElementById('user-list-container');
+        const chatWindowDiv = document.getElementById('chat-window');
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const chatHeaderName = document.getElementById('chat-header-name');
+        const chatHeaderEmoji = document.getElementById('chat-header-emoji');
+        const chatHeaderStatus = document.getElementById('chat-header-status');
+        const noChatSelectedDiv = document.getElementById('no-chat-selected');
+        const chatInputArea = document.getElementById('chat-input-area');
+        const backButton = document.getElementById('back-button');
+
+        // --- Authentication & Initialization ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserId = user.uid;
+                setupPresence(); // --- Manages online/offline status ---
+                loadFriends();
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // --- Presence System (Online/Offline Status) ---
+        function setupPresence() {
+            const userStatusRef = db.ref(`/userProfiles/${currentUserId}`);
+            const presenceRef = db.ref('.info/connected');
+            
+            presenceRef.on('value', (snap) => {
+                if (snap.val() === true) {
+                    userStatusRef.update({ isOnline: true, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+                    userStatusRef.onDisconnect().update({ isOnline: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+                }
+            });
+        }
+
+        function loadFriends() {
+            const friendsRef = db.ref(`friends/${currentUserId}`);
+            userListContainer.innerHTML = '<p class="p-4 text-gray-500">Loading friends...</p>';
+
+            friendsRef.on('value', snapshot => {
+                if (!snapshot.exists()) {
+                    userListContainer.innerHTML = '<p class="p-4 text-gray-500 text-center">You have no friends yet. Add friends from the Home page.</p>';
+                    return;
+                }
+                userListContainer.innerHTML = '';
+                snapshot.forEach(friendSnapshot => {
+                    const friendId = friendSnapshot.key;
+                    
+                    db.ref(`userProfiles/${friendId}`).on('value', profileSnap => {
+                         if (!profileSnap.exists()) return;
+                         const user = profileSnap.val();
+                         const chatId = getChatId(currentUserId, friendId);
+                         
+                         db.ref(`userChats/${currentUserId}/${chatId}/unreadCount`).on('value', unreadSnap => {
+                            const unreadCount = unreadSnap.val() || 0;
+                            const userElement = createUserListItem(friendId, user, unreadCount);
+
+                            const existingEl = document.getElementById(`user-${friendId}`);
+                            if (existingEl) {
+                                existingEl.replaceWith(userElement);
+                            } else {
+                                userListContainer.appendChild(userElement);
+                            }
+                         });
+                    });
+                });
+            });
+        }
+        
+        // --- Helper to create user list item with status indicator ---
+        function createUserListItem(friendId, user, unreadCount) {
+            const userElement = document.createElement('div');
+            userElement.id = `user-${friendId}`;
+            userElement.className = 'user-list-item p-4 flex items-center cursor-pointer hover:bg-gray-100 transition-colors';
+            userElement.dataset.uid = friendId;
+            
+            const onlineIndicator = user.isOnline ? '<div class="online-indicator"></div>' : '';
+            const unreadBadge = unreadCount > 0 ? `<span class="unread-badge ml-auto">${unreadCount}</span>` : '';
+
+            userElement.innerHTML = `
+                <div class="relative mr-3">
+                    <div class="text-3xl w-12 h-12 flex items-center justify-center bg-gray-200 rounded-full">${user.profileEmoji || '👤'}</div>
+                    ${onlineIndicator}
+                </div>
+                <div class="flex-grow">
+                    <h4 class="font-bold text-gray-800">${user.fullName || 'Anonymous'}</h4>
+                </div>
+                ${unreadBadge}
+            `;
+            
+            userElement.onclick = () => selectUser(friendId, user.fullName, user.profileEmoji, user.isOnline, user.lastSeen);
+            return userElement;
+        }
+
+        function selectUser(uid, name, emoji, isOnline, lastSeen) {
+            selectedUserId = uid;
+            activeChatId = getChatId(currentUserId, selectedUserId);
+
+            noChatSelectedDiv.classList.add('hidden');
+            chatInputArea.classList.remove('hidden');
+            
+            document.querySelectorAll('.user-list-item').forEach(item => item.classList.remove('active'));
+            document.getElementById(`user-${uid}`).classList.add('active');
+
+            // --- Update chat header with name and online status ---
+            chatHeaderEmoji.innerHTML = `${emoji || '👤'}${isOnline ? '<div class="online-indicator"></div>' : ''}`;
+            chatHeaderName.textContent = name || 'Anonymous';
+            if (isOnline) {
+                chatHeaderStatus.textContent = "Online";
+            } else {
+                chatHeaderStatus.textContent = `Last seen: ${new Date(lastSeen).toLocaleString()}`;
+            }
+            
+            chatWindowDiv.classList.remove('hidden');
+            chatWindowDiv.classList.add('flex');
+            
+            messagesDiv.innerHTML = ''; 
+            loadChat();
+            resetUnreadCount();
+        }
+
+        function getChatId(uid1, uid2) {
+            return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
+        }
+
+        function loadChat() {
+            // Detach previous listeners to avoid memory leaks
+            if (chatListeners[activeChatId]) {
+                chatListeners[activeChatId].ref.off('child_added', chatListeners[activeChatId].addedCallback);
+                chatListeners[activeChatId].ref.off('child_changed', chatListeners[activeChatId].changedCallback);
+            }
+            
+            const messagesRef = db.ref(`chats/${activeChatId}/messages`).orderByChild('timestamp');
+
+            // Listen for new messages
+            const addedCallback = messagesRef.on('child_added', (snapshot) => {
+                displayMessage(snapshot.key, snapshot.val());
+                markMessageAsRead(snapshot.key, snapshot.val());
+            });
+            
+            // Listen for changes in messages (like isRead status update)
+            const changedCallback = messagesRef.on('child_changed', (snapshot) => {
+                const messageId = snapshot.key;
+                const messageData = snapshot.val();
+                // If I am the sender, update the read receipt on my screen
+                if (messageData.senderId === currentUserId) {
+                    const msgElement = document.getElementById(`msg-${messageId}`);
+                    if (msgElement && messageData.isRead) {
+                        const readReceiptEl = msgElement.querySelector('.read-receipt');
+                        if(readReceiptEl) readReceiptEl.innerHTML = '✓✓';
+                    }
+                }
+            });
+
+            // Store listeners to detach them later
+            chatListeners[activeChatId] = { ref: messagesRef, addedCallback, changedCallback };
+        }
+
+        function displayMessage(messageId, message) {
+            const messageElement = document.createElement('div');
+            messageElement.id = `msg-${messageId}`;
+            messageElement.className = `message flex items-end mb-4 ${message.senderId === currentUserId ? 'sent justify-end' : 'received justify-start'}`;
+            
+            const time = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            let readReceipt = '';
+            // Show read receipt only for messages sent by the current user
+            if (message.senderId === currentUserId) {
+                // If message is read, show double tick, otherwise single tick
+                readReceipt = `<span class="read-receipt ml-1">${message.isRead ? '✓✓' : '✓'}</span>`;
+            }
+
+            messageElement.innerHTML = `
+                <div class="message-bubble">
+                    ${message.text}
+                    <div class="message-meta text-right mt-1">
+                        <span>${time}</span>
+                        ${readReceipt}
+                    </div>
+                </div>
+            `;
+            
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; 
+        }
+
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (text && selectedUserId) {
+                const newMessage = {
+                    senderId: currentUserId,
+                    receiverId: selectedUserId,
+                    text: text,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    isRead: false // Set initial read status to false
+                };
+                db.ref(`chats/${activeChatId}/messages`).push(newMessage).then(() => {
+                     messageInput.value = '';
+                     messageInput.focus();
+                     incrementUnreadCount();
+                });
+            }
+        }
+        
+        // This function is called when a message is displayed.
+        // It marks the message as read if it was sent by the other user.
+        function markMessageAsRead(messageId, message) {
+            if (message.senderId === selectedUserId && !message.isRead) {
+                db.ref(`chats/${activeChatId}/messages/${messageId}`).update({ isRead: true });
+            }
+        }
+
+        // Increments the unread count for the recipient
+        function incrementUnreadCount() {
+            const unreadRef = db.ref(`userChats/${selectedUserId}/${activeChatId}/unreadCount`);
+            unreadRef.transaction((currentCount) => (currentCount || 0) + 1);
+        }
+        
+        // Resets the unread count for the current user when they open the chat
+        function resetUnreadCount() {
+            db.ref(`userChats/${currentUserId}/${activeChatId}/unreadCount`).set(0);
+        }
+        
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); 
+                sendMessage();
+            }
+        });
+
+        backButton.addEventListener('click', () => {
+            chatWindowDiv.classList.add('hidden');
+            chatWindowDiv.classList.remove('flex');
+            chatInputArea.classList.add('hidden');
+            noChatSelectedDiv.classList.remove('hidden');
+            
+            // Detach the listener for the currently active chat
+            if (activeChatId && chatListeners[activeChatId]) {
+                chatListeners[activeChatId].ref.off('child_added', chatListeners[activeChatId].addedCallback);
+                chatListeners[activeChatId].ref.off('child_changed', chatListeners[activeChatId].changedCallback);
+                delete chatListeners[activeChatId];
+            }
+
+            selectedUserId = null;
+            activeChatId = null;
+            
+            const activeUser = document.querySelector('.user-list-item.active');
+            if (activeUser) {
+                activeUser.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
