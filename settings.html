@@ -1,21 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - MuslimVerse</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MuslimVerse – Settings</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <style>
-        /* --- NEW: Dark Mode Styles for Settings Page --- */
-        .dark body { background-color: #1f2937; color: #d1d5db; }
-        .dark .bg-white { background-color: #374151; }
-        .dark .text-gray-800, .dark .text-gray-700 { color: #d1d5db; }
-        .dark .text-green-800 { color: #6ee7b7; }
-        .dark .border-b, .dark .border-red-200 { border-color: #4b5563; }
-        .dark select { background-color: #4b5563; color: #d1d5db; border-color: #6b7280; }
+        /* General styling for feedback messages */
+        .feedback-message {
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 500;
+            display: none; /* Hidden by default */
+        }
+        .feedback-success {
+            background-color: #d1fae5; /* green-100 */
+            color: #065f46; /* green-800 */
+        }
+        .feedback-error {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+        }
+        
+        /* --- NEW: Custom Modal Styles --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 30;
+            display: none; /* Changed from 'hidden' to 'none' for JS toggle */
+            justify-content: center;
+            align-items: center;
+        }
     </style>
 </head>
 <body class="bg-green-50 min-h-screen text-gray-800">
@@ -23,100 +47,271 @@
     <!-- Header -->
     <header class="bg-green-700 text-white shadow-lg sticky top-0 z-20">
         <nav class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
-            <h1 class="text-xl font-bold">Settings</h1>
-            <a href="home.html" class="text-sm font-semibold hover:bg-green-600 px-3 py-1 rounded-md transition-colors">← Back to Home</a>
+            <a href="home.html" class="text-xl font-bold flex items-center">
+                <span class="mr-2 text-2xl">🕋</span>
+                <span>MuslimVerse</span>
+            </a>
+            <a href="home.html" class="text-sm bg-gray-100 text-green-800 font-semibold px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                Back to Home
+            </a>
         </nav>
     </header>
 
-    <!-- Settings Form -->
-    <main class="max-w-xl mx-auto mt-6">
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-bold text-green-800 border-b pb-2 mb-4">Preferences</h2>
-            <div class="space-y-4">
-                <!-- Country Selection -->
-                <div>
-                    <label for="countrySelect" class="block text-sm font-medium text-gray-700">Country</label>
-                    <select id="countrySelect" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400">
-                        <!-- Options will be populated by JS -->
-                    </select>
-                </div>
+    <!-- Main Content -->
+    <main class="max-w-xl mx-auto pt-6 pb-12 px-4">
+        <h1 class="text-3xl font-bold text-green-800 mb-6">Settings</h1>
 
-                <button onclick="saveSettings()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                    Save Settings
+        <!-- Profile Settings -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold text-gray-700 border-b pb-3 mb-4">👤 Profile Information</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="fullName" class="block text-sm font-medium text-gray-600 mb-1">Full Name</label>
+                    <input type="text" id="fullName" class="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500" placeholder="Your full name">
+                </div>
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-600 mb-1">Username</label>
+                    <input type="text" id="username" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed" disabled title="Username cannot be changed.">
+                </div>
+                <div>
+                    <label for="profileEmoji" class="block text-sm font-medium text-gray-600 mb-1">Profile Emoji</label>
+                    <input type="text" id="profileEmoji" maxlength="2" class="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500" placeholder="e.g., 😊">
+                </div>
+                <button onclick="saveProfile()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+
+        <!-- Security Settings -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold text-gray-700 border-b pb-3 mb-4">🔒 Security</h2>
+            <div class="space-y-4">
+                <button onclick="showUserInfo()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Show My Info
+                </button>
+                <button onclick="logout()" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Logout
                 </button>
             </div>
         </div>
 
         <!-- Danger Zone -->
-        <div class="bg-white p-6 rounded-lg shadow-md mt-6">
-             <h2 class="text-xl font-bold text-red-600 border-b border-red-200 pb-2 mb-4">Account Actions</h2>
-             <div class="space-y-4">
-                 <button onclick="logout()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Logout</button>
-                 <button onclick="deleteAccount()" class="w-full bg-red-800 hover:bg-red-900 text-white font-bold py-2 px-4 rounded-lg transition-colors">Delete Account</button>
-             </div>
+        <div class="bg-red-50 p-6 rounded-lg shadow-inner border border-red-200">
+            <h2 class="text-xl font-semibold text-red-800 border-b border-red-200 pb-3 mb-4">🚨 Danger Zone</h2>
+            <p class="text-red-700 mb-4 text-sm">
+                Deleting your account is a permanent action. All your posts, comments, and connections will be removed forever. This cannot be undone.
+            </p>
+            <button onclick="deleteAccount()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                Delete My Account
+            </button>
         </div>
+
+        <!-- Feedback Message Area -->
+        <div id="feedback" class="feedback-message"></div>
+
     </main>
 
-    <script>
-        const firebaseConfig = { /* ... */ };
-        firebase.initializeApp(firebaseConfig);
+    <!-- --- NEW: Custom Info Modal --- -->
+    <div id="info-modal-overlay" class="modal-overlay" onclick="closeInfoModal()">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-md relative" onclick="event.stopPropagation()">
+            <button onclick="closeInfoModal()" class="absolute top-2 right-3 text-3xl font-light text-gray-500 hover:text-gray-800">×</button>
+            <h2 class="text-xl font-semibold mb-5 text-green-700 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Your Account Information
+            </h2>
+            <div id="modal-user-info" class="space-y-4 text-gray-800">
+                <!-- Content will be injected by JavaScript -->
+            </div>
+        </div>
+    </div>
 
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3VEv_rdd3FElJupOnfGrBQuLjGwACsA8",
+            authDomain: "masklink-calling.firebaseapp.com",
+            databaseURL: "https://masklink-calling-default-rtdb.firebaseio.com",
+            projectId: "masklink-calling",
+            storageBucket: "masklink-calling.appspot.com",
+            messagingSenderId: "240213769733",
+            appId: "1:240213769733:web:53e35fbf17e4b4d284266c"
+        };
+
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const auth = firebase.auth();
         let currentUserId = null;
-        let currentUserProfile = {};
+        let currentUserEmail = null;
 
-        // --- NEW: Function to apply theme ---
-        function applyTheme(theme) {
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
+        // Display feedback message
+        function showFeedback(message, isSuccess = true) {
+            const feedbackEl = document.getElementById('feedback');
+            feedbackEl.textContent = message;
+            feedbackEl.className = 'feedback-message'; // Reset classes
+            if (isSuccess) {
+                feedbackEl.classList.add('feedback-success');
             } else {
-                document.documentElement.classList.remove('dark');
+                feedbackEl.classList.add('feedback-error');
             }
+            feedbackEl.style.display = 'block';
+            setTimeout(() => {
+                feedbackEl.style.display = 'none';
+            }, 4000); // Hide after 4 seconds
         }
 
+        // Auth state listener
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUserId = user.uid;
-                loadUserSettings();
+                currentUserEmail = user.email;
+                loadUserProfile();
             } else {
                 window.location.href = "login.html";
             }
         });
 
-        function loadUserSettings() {
+        // Load user profile data into form fields
+        function loadUserProfile() {
             if (!currentUserId) return;
-            const profileRef = db.ref('userProfiles/' + currentUserId);
-            profileRef.once('value').then(snapshot => {
-                currentUserProfile = snapshot.val() || {};
-                
-                // --- NEW: Apply saved theme on page load ---
-                applyTheme(currentUserProfile.theme || 'light');
-                
-                const countrySelect = document.getElementById('countrySelect');
-                const countries = { BD: 'Bangladesh', SA: 'Saudi Arabia', ID: 'Indonesia', PK: 'Pakistan', EG: 'Egypt', TR: 'Turkey', GB: 'United Kingdom', US: 'United States' };
-                Object.keys(countries).forEach(code => {
-                    const option = document.createElement('option');
-                    option.value = code;
-                    option.textContent = countries[code];
-                    countrySelect.appendChild(option);
-                });
-                countrySelect.value = currentUserProfile.country || 'BD';
+            const userProfileRef = db.ref('userProfiles/' + currentUserId);
+            userProfileRef.once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    const profile = snapshot.val();
+                    document.getElementById('fullName').value = profile.fullName || '';
+                    document.getElementById('username').value = profile.username || '';
+                    document.getElementById('profileEmoji').value = profile.profileEmoji || '';
+                } else {
+                    console.log("No profile found for user, creating one.");
+                    document.getElementById('fullName').value = currentUserEmail.split('@')[0];
+                }
+            }).catch(error => {
+                console.error("Error loading profile:", error);
+                showFeedback("Could not load your profile. Please try again later.", false);
             });
         }
 
-        function saveSettings() {
-            if (!currentUserId) return;
-            const country = document.getElementById('countrySelect').value;
-            // Note: We don't save the theme from here anymore, it's saved instantly from home.html
-            const settingsData = { country }; 
-            db.ref('userProfiles/' + currentUserId).update(settingsData)
-                .then(() => alert('Settings saved successfully!'))
-                .catch(error => alert('Error saving settings: ' + error.message));
+        // Save updated profile information
+        function saveProfile() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const profileEmoji = document.getElementById('profileEmoji').value.trim();
+
+            if (!fullName) {
+                showFeedback("Full Name cannot be empty.", false);
+                return;
+            }
+
+            const updates = {
+                fullName: fullName,
+                profileEmoji: profileEmoji
+            };
+
+            db.ref('userProfiles/' + currentUserId).update(updates)
+                .then(() => {
+                    showFeedback("Profile updated successfully!", true);
+                })
+                .catch(error => {
+                    console.error("Error saving profile:", error);
+                    showFeedback("Failed to save profile. Please try again.", false);
+                });
         }
 
-        function logout() { /* ... same as before ... */ }
-        function deleteAccount() { /* ... same as before ... */ }
+        // --- UPDATED: Show user info in a custom modal ---
+        function showUserInfo() {
+            if (!currentUserId || !currentUserEmail) {
+                showFeedback("User information not loaded yet. Please wait.", false);
+                return;
+            }
+
+            const modalUserInfo = document.getElementById('modal-user-info');
+            const modalOverlay = document.getElementById('info-modal-overlay');
+
+            if (modalUserInfo && modalOverlay) {
+                // Populate the modal with user info using a more appealing format
+                modalUserInfo.innerHTML = `
+                    <div>
+                        <p class="font-semibold text-gray-600">User ID:</p>
+                        <p class="text-sm bg-gray-100 p-2 rounded-md break-words select-all">${currentUserId}</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-600">Email:</p>
+                        <p class="text-sm bg-gray-100 p-2 rounded-md select-all">${currentUserEmail}</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-600">Password:</p>
+                        <p class="text-sm text-red-700 bg-red-100 p-2 rounded-md">
+                            For your account's security, passwords cannot be displayed.
+                        </p>
+                    </div>
+                `;
+                // Display the modal
+                modalOverlay.style.display = 'flex';
+            }
+        }
+        
+        // --- NEW: Function to close the custom modal ---
+        function closeInfoModal() {
+            const modalOverlay = document.getElementById('info-modal-overlay');
+            if (modalOverlay) {
+                modalOverlay.style.display = 'none';
+            }
+        }
+
+        // Logout the current user
+        function logout() {
+            if (confirm("Are you sure you want to logout?")) {
+                auth.signOut().then(() => {
+                    window.location.href = "login.html";
+                }).catch(error => {
+                    console.error("Logout error:", error);
+                    showFeedback("Failed to logout. Please try again.", false);
+                });
+            }
+        }
+
+        // Delete user account and all associated data
+        function deleteAccount() {
+            const confirmation = prompt("This is irreversible. To confirm, please type DELETE below:");
+            if (confirmation !== 'DELETE') {
+                showFeedback("Account deletion cancelled.", true);
+                return;
+            }
+
+            const user = auth.currentUser;
+            const username = document.getElementById('username').value;
+            
+            if (!user) {
+                showFeedback("No user is logged in.", false);
+                return;
+            }
+
+            const pathsToDelete = {};
+            pathsToDelete[`/userProfiles/${currentUserId}`] = null;
+            if (username) {
+                pathsToDelete[`/usernames/${username}`] = null;
+            }
+            pathsToDelete[`/friendRequests/${currentUserId}`] = null;
+            pathsToDelete[`/notifications/${currentUserId}`] = null;
+            pathsToDelete[`/userChats/${currentUserId}`] = null;
+
+            db.ref().update(pathsToDelete)
+                .then(() => {
+                    console.log("User data from RTDB deleted.");
+                    return user.delete();
+                })
+                .then(() => {
+                    alert("Your account has been successfully deleted.");
+                    window.location.href = "login.html";
+                })
+                .catch(error => {
+                    console.error("Error deleting account:", error);
+                    if (error.code === 'auth/requires-recent-login') {
+                        alert("This is a sensitive operation. Please log out and log back in before trying again.");
+                    } else {
+                        showFeedback(`Error deleting account: ${error.message}`, false);
+                    }
+                });
+        }
     </script>
 </body>
 </html>
