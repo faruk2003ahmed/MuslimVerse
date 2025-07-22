@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - MuslimVerse</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <style>
+        /* --- NEW: Dark Mode Styles for Settings Page --- */
+        .dark body { background-color: #1f2937; color: #d1d5db; }
+        .dark .bg-white { background-color: #374151; }
+        .dark .text-gray-800, .dark .text-gray-700 { color: #d1d5db; }
+        .dark .text-green-800 { color: #6ee7b7; }
+        .dark .border-b, .dark .border-red-200 { border-color: #4b5563; }
+        .dark select { background-color: #4b5563; color: #d1d5db; border-color: #6b7280; }
+    </style>
+</head>
+<body class="bg-green-50 min-h-screen text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-green-700 text-white shadow-lg sticky top-0 z-20">
+        <nav class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl font-bold">Settings</h1>
+            <a href="home.html" class="text-sm font-semibold hover:bg-green-600 px-3 py-1 rounded-md transition-colors">← Back to Home</a>
+        </nav>
+    </header>
+
+    <!-- Settings Form -->
+    <main class="max-w-xl mx-auto mt-6">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold text-green-800 border-b pb-2 mb-4">Preferences</h2>
+            <div class="space-y-4">
+                <!-- Country Selection -->
+                <div>
+                    <label for="countrySelect" class="block text-sm font-medium text-gray-700">Country</label>
+                    <select id="countrySelect" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+
+                <button onclick="saveSettings()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Save Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="bg-white p-6 rounded-lg shadow-md mt-6">
+             <h2 class="text-xl font-bold text-red-600 border-b border-red-200 pb-2 mb-4">Account Actions</h2>
+             <div class="space-y-4">
+                 <button onclick="logout()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Logout</button>
+                 <button onclick="deleteAccount()" class="w-full bg-red-800 hover:bg-red-900 text-white font-bold py-2 px-4 rounded-lg transition-colors">Delete Account</button>
+             </div>
+        </div>
+    </main>
+
+    <script>
+        const firebaseConfig = { /* ... */ };
+        firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.database();
+        const auth = firebase.auth();
+        let currentUserId = null;
+        let currentUserProfile = {};
+
+        // --- NEW: Function to apply theme ---
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserId = user.uid;
+                loadUserSettings();
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        function loadUserSettings() {
+            if (!currentUserId) return;
+            const profileRef = db.ref('userProfiles/' + currentUserId);
+            profileRef.once('value').then(snapshot => {
+                currentUserProfile = snapshot.val() || {};
+                
+                // --- NEW: Apply saved theme on page load ---
+                applyTheme(currentUserProfile.theme || 'light');
+                
+                const countrySelect = document.getElementById('countrySelect');
+                const countries = { BD: 'Bangladesh', SA: 'Saudi Arabia', ID: 'Indonesia', PK: 'Pakistan', EG: 'Egypt', TR: 'Turkey', GB: 'United Kingdom', US: 'United States' };
+                Object.keys(countries).forEach(code => {
+                    const option = document.createElement('option');
+                    option.value = code;
+                    option.textContent = countries[code];
+                    countrySelect.appendChild(option);
+                });
+                countrySelect.value = currentUserProfile.country || 'BD';
+            });
+        }
+
+        function saveSettings() {
+            if (!currentUserId) return;
+            const country = document.getElementById('countrySelect').value;
+            // Note: We don't save the theme from here anymore, it's saved instantly from home.html
+            const settingsData = { country }; 
+            db.ref('userProfiles/' + currentUserId).update(settingsData)
+                .then(() => alert('Settings saved successfully!'))
+                .catch(error => alert('Error saving settings: ' + error.message));
+        }
+
+        function logout() { /* ... same as before ... */ }
+        function deleteAccount() { /* ... same as before ... */ }
+    </script>
+</body>
+</html>

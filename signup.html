@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MuslimVerse – Sign Up</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <style>
+      #kalima-section {
+          transition: all 0.5s ease-in-out;
+          max-height: 0;
+          overflow: hidden;
+      }
+      #kalima-section.visible {
+          max-height: 500px; /* Adjust as needed */
+          padding-top: 1rem;
+          padding-bottom: 1rem;
+      }
+  </style>
+</head>
+<body class="bg-green-50 flex items-center justify-center min-h-screen px-4">
+
+  <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+    <h1 class="text-3xl font-extrabold text-center text-green-700 mb-4">🕋 MuslimVerse</h1>
+    <h2 class="text-lg font-semibold mb-4 text-center">✍️ Create Your Account</h2>
+
+    <form onsubmit="signUp(); return false;">
+      <input id="fullName" type="text" placeholder="Full Name" required class="w-full p-3 border border-gray-300 rounded mb-3" />
+      <input id="username" type="text" placeholder="Username (e.g., ahmed123, no spaces)" required class="w-full p-3 border border-gray-300 rounded mb-3" />
+      <input id="email" type="email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded mb-3" />
+      <input id="password" type="password" placeholder="Password" required class="w-full p-3 border border-gray-300 rounded mb-3" />
+      
+      <select id="religion" onchange="handleReligionChange()" required class="w-full p-3 border border-gray-300 rounded mb-2 bg-white">
+        <option value="" selected disabled>-- Select your religion --</option>
+        <option value="islam">Islam</option>
+      </select>
+      
+      <!-- NEW: Kalima Shahadat Section (hidden by default) -->
+      <div id="kalima-section">
+          <div class="bg-green-50 p-4 rounded-lg border border-green-200 text-center">
+              <p class="text-xl font-semibold text-green-800">أَشْهَدُ أَنْ لَا إِلَٰهَ إِلَّا ٱللَّٰهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا رَسُولُ ٱللَّٰهِ</p>
+              <p class="text-sm text-gray-700 mt-2"><i>Ash-hadu an la ilaha illallah, wa ash-hadu anna Muhammadan Rasoolullah.</i></p>
+              <p class="text-sm text-gray-600 mt-2">"I bear witness that there is no god but Allah, and I bear witness that Muhammad is the Messenger of Allah."</p>
+          </div>
+          <div class="mt-4 flex items-center">
+              <input type="checkbox" id="agree-kalima" onchange="toggleSignUpButton()" class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+              <label for="agree-kalima" class="ml-2 block text-sm text-gray-900">I agree and bear witness to the Kalima Shahadat.</label>
+          </div>
+      </div>
+      
+      <button id="signup-button" type="submit" disabled class="w-full bg-green-600 text-white p-3 rounded font-semibold hover:bg-green-700 transition duration-200 mt-4 disabled:bg-gray-400 disabled:cursor-not-allowed">
+        Sign Up
+      </button>
+
+      <a href="login.html" class="block text-center text-green-700 mt-4 hover:underline font-medium">
+        Already have an account? Login
+      </a>
+    </form>
+
+    <p id="signupStatus" class="text-sm mt-4 text-center text-red-600"></p>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD3VEv_rdd3FElJupOnfGrBQuLjGwACsA8",
+      authDomain: "masklink-calling.firebaseapp.com",
+      databaseURL: "https://masklink-calling-default-rtdb.firebaseio.com",
+      projectId: "masklink-calling",
+      storageBucket: "masklink-calling.appspot.com",
+      messagingSenderId: "240213769733",
+      appId: "1:240213769733:web:53e35fbf17e4b4d284266c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    function handleReligionChange() {
+        const religion = document.getElementById("religion").value;
+        const kalimaSection = document.getElementById("kalima-section");
+        
+        if (religion === "islam") {
+            kalimaSection.classList.add("visible");
+        } else {
+            kalimaSection.classList.remove("visible");
+        }
+        toggleSignUpButton();
+    }
+
+    function toggleSignUpButton() {
+        const agreeCheckbox = document.getElementById("agree-kalima");
+        const signUpButton = document.getElementById("signup-button");
+        signUpButton.disabled = !agreeCheckbox.checked;
+    }
+
+    function signUp() {
+      const fullName = document.getElementById("fullName").value.trim();
+      const username = document.getElementById("username").value.trim().toLowerCase();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const religion = document.getElementById("religion").value;
+      const agreeKalima = document.getElementById("agree-kalima").checked;
+      const signupStatus = document.getElementById("signupStatus");
+
+      signupStatus.textContent = "";
+
+      if (religion !== "islam" || !agreeKalima) {
+          signupStatus.textContent = "❌ You must agree to the Kalima Shahadat to create an account.";
+          return;
+      }
+      if (/\s/.test(username) || username.length < 3) {
+          signupStatus.textContent = "❌ Username must be at least 3 characters and have no spaces.";
+          return;
+      }
+
+      db.ref('usernames/' + username).once('value').then(snapshot => {
+          if (snapshot.exists()) {
+              signupStatus.textContent = "❌ This username is already taken.";
+          } else {
+              auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    const profileData = {
+                        fullName: fullName,
+                        username: username,
+                        email: email,
+                        fullName_lowercase: fullName.toLowerCase(),
+                        bio: "",
+                        profileEmoji: "👤"
+                    };
+                    const updates = {};
+                    updates['/userProfiles/' + user.uid] = profileData;
+                    updates['/usernames/' + username] = { uid: user.uid };
+                    return db.ref().update(updates);
+                })
+                .then(() => {
+                    signupStatus.textContent = "✅ Account created successfully! Redirecting...";
+                    setTimeout(() => { window.location.href = "home.html"; }, 1500);
+                })
+                .catch((error) => { signupStatus.textContent = "❌ " + error.message; });
+          }
+      });
+    }
+  </script>
+</body>
+</html>
