@@ -28,6 +28,10 @@
         display: none; justify-content: center; align-items: center;
     }
     
+    /* Custom Notification Modal Style */
+    #notification-modal-content ul { list-style-position: inside; padding-left: 10px; }
+    #notification-modal-content li { margin-bottom: 8px; padding-left: 8px; border-left: 3px solid #10b981; }
+
     /* Floating Menu Styles (Top-Right) */
     .floating-menu-container {
         position: fixed;
@@ -72,13 +76,6 @@
         order: -1;
     }
 
-    .floating-menu-container.active .floating-action-button { transition-delay: 0.05s; }
-    .floating-menu-container.active .floating-message-button { transition-delay: 0.1s; }
-    .floating-menu-container.active .floating-requests-button { transition-delay: 0.15s; }
-    .floating-menu-container.active .floating-search-button { transition-delay: 0.2s; }
-    .floating-menu-container.active .floating-profile-button { transition-delay: 0.25s; }
-    .floating-menu-container.active .floating-settings-button { transition-delay: 0.3s; }
-
     #search-results-container { max-height: 300px; overflow-y: auto; }
     
     /* Blinking Animation for Friend Request Icon */
@@ -95,23 +92,30 @@
         color: #1f2937; 
     }
     
-    /* --- NEW: CSS for Message Notification Button --- */
-    @keyframes pulse-notify {
-        0%, 100% {
-            background-color: #fca5a5; /* red-300 */
-            transform: scale(1);
-        }
-        50% {
-            background-color: #facc15; /* yellow-400 */
-            transform: scale(1.05);
-        }
+    /* CSS for Ringing Bell Animation */
+    @keyframes ring-animation {
+        0%, 100% { transform: rotate(0); }
+        10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
+        20%, 40%, 60%, 80% { transform: rotate(10deg); }
     }
 
-    .blinking-notification-button {
-        animation: pulse-notify 2s infinite;
-        font-weight: bold;
+    .ringing-bell {
+        animation: ring-animation 1.5s infinite;
     }
-    /* --- End of New CSS --- */
+
+    /* CSS for Feed Toggle Buttons */
+    .feed-toggle-btn {
+        transition: all 0.2s ease-in-out;
+        border: 2px solid #059669;
+    }
+    .feed-toggle-btn.active {
+        background-color: #059669;
+        color: white;
+    }
+    .feed-toggle-btn:not(.active) {
+        background-color: white;
+        color: #059669;
+    }
 
   </style>
 </head>
@@ -126,12 +130,9 @@
         </a>
         <div class="flex items-center space-x-4">
             <a href="requests.html" id="friend-requests-btn" title="Friend Requests" class="p-2 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" /></svg>
             </a>
-            <!-- MODIFIED: onclick attribute changed to a new function -->
-            <button onclick="handleNotificationClick()" id="notification-btn" class="text-sm bg-yellow-400 text-black font-semibold px-3 py-1 rounded-md hover:bg-yellow-500 relative">
+            <button onclick="checkNotifications()" id="notification-btn" class="text-sm bg-yellow-400 text-black font-semibold px-3 py-1 rounded-md hover:bg-yellow-500 relative">
                 Notifications
                 <span id="notification-dot" class="absolute top-0 right-0 -mt-1 -mr-1 w-3 h-3 bg-red-500 rounded-full" style="display: none;"></span>
             </button>
@@ -139,8 +140,18 @@
     </nav>
   </header>
 
+  <!-- Feed Toggle UI -->
+  <div class="max-w-xl mx-auto p-4 flex justify-center space-x-2 bg-green-100 sticky top-[68px] z-10">
+    <button id="btn-public-feed" onclick="switchFeedMode('public')" class="feed-toggle-btn active w-full py-2 rounded-md font-semibold">
+      🌍 Public Feed
+    </button>
+    <button id="btn-friends-feed" onclick="switchFeedMode('friends')" class="feed-toggle-btn w-full py-2 rounded-md font-semibold">
+      👥 Friends Feed
+    </button>
+  </div>
+
   <!-- Main Content -->
-  <main class="max-w-xl mx-auto pt-6">
+  <main class="max-w-xl mx-auto pt-4">
     <div id="feed" class="space-y-4 px-2 pb-4"></div>
     <div id="load-more-container" class="text-center p-4"></div>
   </main>
@@ -166,7 +177,6 @@
           <div id="search-results-container"></div>
       </div>
   </div>
-    <!-- Share Modal -->
   <div id="share-modal-overlay" class="modal-overlay" onclick="toggleModal('share-modal-overlay', true)">
       <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-lg relative" onclick="event.stopPropagation()">
           <button onclick="toggleModal('share-modal-overlay')" class="absolute top-2 right-3 text-2xl text-gray-500 hover:text-gray-800">×</button>
@@ -180,6 +190,21 @@
       </div>
   </div>
 
+  <!-- Custom Notification Modal -->
+  <div id="notification-modal-overlay" class="modal-overlay" onclick="toggleNotificationModal(false)">
+      <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-md" onclick="event.stopPropagation()">
+          <div class="bg-green-600 text-white p-4 rounded-t-lg flex justify-between items-center">
+              <h2 class="text-xl font-semibold">🔔 Notifications</h2>
+              <button onclick="toggleNotificationModal(false)" class="text-2xl leading-none">×</button>
+          </div>
+          <div id="notification-modal-content" class="p-6 text-gray-700 max-h-80 overflow-y-auto">
+              <!-- Notification content will be injected here -->
+          </div>
+          <div class="bg-gray-100 p-3 rounded-b-lg text-right">
+              <button onclick="toggleNotificationModal(false)" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md">Close</button>
+          </div>
+      </div>
+  </div>
 
   <!-- Floating Menu Container -->
   <div id="floating-menu-container" class="floating-menu-container">
@@ -204,6 +229,22 @@
       </a>
   </div>
 
+  <!-- New Friend Request Popup -->
+  <div id="friend-request-popup" style="position: fixed; bottom: 85px; right: 20px; background-color: #059669; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; z-index: 100; display: none; align-items: center;" onclick="this.style.display='none'; location.href='requests.html'">
+      <svg xmlns="http://www.w3.org/2000/svg" class="ringing-bell" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 24px; height: 24px; margin-right: 10px;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      </svg>
+      <span>New Friend Request</span>
+  </div>
+
+  <!-- New Message Popup -->
+  <div id="message-popup" style="position: fixed; bottom: 20px; right: 20px; background-color: #059669; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; z-index: 100; display: none; align-items: center;" onclick="location.href='message.html'">
+      <svg xmlns="http://www.w3.org/2000/svg" class="ringing-bell" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 24px; height: 24px; margin-right: 10px;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      </svg>
+      <span>New Message</span>
+  </div>
+
   <script>
     const firebaseConfig = {
         apiKey: "AIzaSyD3VEv_rdd3FElJupOnfGrBQuLjGwACsA8",
@@ -226,6 +267,15 @@
     const POSTS_PER_PAGE = 10;
     let postToShareId = null;
 
+    // Variables for Feed Control
+    let currentFeedMode = 'public'; // 'public' or 'friends'
+    let friendsList = [];
+    
+    // Variables for new request popup
+    let initialRequestsLoaded = false;
+    let previousRequestCount = 0;
+
+
     auth.onAuthStateChanged(user => {
       if (!user) { 
           window.location.href = "login.html"; 
@@ -234,27 +284,52 @@
           db.ref('userProfiles/' + currentUserId).once('value').then(snap => {
               currentUserProfile = snap.val() || { fullName: user.email, profileEmoji: '👤', username: null };
           });
-          loadPosts(true);
+          
+          loadFriendsList().then(() => {
+              loadPosts(true);
+          });
           listenForNotifications();
           listenForFriendRequests();
-          listenForUnreadMessages(currentUserId); // NEW: Listen for messages
+          listenForUnreadMessages(currentUserId);
           makeMenuDraggable();
       }
     });
-
-    // --- NEW: Function to handle notification button click ---
-    function handleNotificationClick() {
-        const notificationBtn = document.getElementById('notification-btn');
-        if (notificationBtn.classList.contains('blinking-notification-button')) {
-            window.location.href = 'message.html'; // Go to messages page if blinking
-        } else {
-            checkNotifications(); // Otherwise, perform original action
+    
+    // Function to switch between feeds
+    function switchFeedMode(mode) {
+        if (isLoading || currentFeedMode === mode) return;
+        currentFeedMode = mode;
+        
+        document.getElementById('btn-public-feed').classList.toggle('active', mode === 'public');
+        document.getElementById('btn-friends-feed').classList.toggle('active', mode === 'friends');
+        
+        loadPosts(true);
+    }
+    
+    // Function to load user's friends list
+    async function loadFriendsList() {
+        friendsList = [];
+        const snapshot = await db.ref(`friends/${currentUserId}`).once('value');
+        if (snapshot.exists()) {
+            snapshot.forEach(child => {
+                friendsList.push(child.key);
+            });
         }
     }
 
-    // --- NEW: Function to listen for unread messages ---
+
+    function showNewMessagePopup() {
+        const popup = document.getElementById('message-popup');
+        if (popup) {
+            popup.style.display = 'flex';
+        }
+    }
+
     function listenForUnreadMessages(userId) {
         const userChatsRef = db.ref(`userChats/${userId}`);
+        let initialDataLoaded = false;
+        let previousTotalUnread = 0;
+
         userChatsRef.on('value', snapshot => {
             let totalUnread = 0;
             if (snapshot.exists()) {
@@ -262,20 +337,16 @@
                     totalUnread += chatSnapshot.val().unreadCount || 0;
                 });
             }
-            updateNotificationButtonUI(totalUnread);
+
+            if (initialDataLoaded && totalUnread > previousTotalUnread) {
+                showNewMessagePopup();
+            }
+
+            previousTotalUnread = totalUnread;
+            if (!initialDataLoaded) {
+                initialDataLoaded = true;
+            }
         });
-    }
-
-    // --- NEW: Function to update the UI of the notification button ---
-    function updateNotificationButtonUI(count) {
-        const notificationBtn = document.getElementById('notification-btn');
-        if (!notificationBtn) return;
-
-        if (count > 0) {
-            notificationBtn.classList.add('blinking-notification-button');
-        } else {
-            notificationBtn.classList.remove('blinking-notification-button');
-        }
     }
 
     function makeMenuDraggable() {
@@ -336,6 +407,13 @@
         }
     }
     
+    function toggleNotificationModal(show) {
+        const modal = document.getElementById('notification-modal-overlay');
+        if (modal) {
+            modal.style.display = show ? 'flex' : 'none';
+        }
+    }
+
     function searchUsers() {
         const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
         const resultsContainer = document.getElementById('search-results-container');
@@ -480,27 +558,52 @@
         });
     }
     
+    function showNewFriendPopup() {
+        const popup = document.getElementById('friend-request-popup');
+        if (popup) {
+            popup.style.display = 'flex';
+        }
+    }
+
     function listenForFriendRequests() {
         const requestsRef = db.ref(`friendRequests/${currentUserId}`);
         const friendRequestsBtn = document.getElementById('friend-requests-btn');
         if (!friendRequestsBtn) return;
+        
         requestsRef.on('value', snapshot => {
-            friendRequestsBtn.classList.toggle('blinking-icon', snapshot.exists() && snapshot.numChildren() > 0);
+            const currentRequestCount = snapshot.numChildren();
+            friendRequestsBtn.classList.toggle('blinking-icon', currentRequestCount > 0);
+
+            if (initialRequestsLoaded && currentRequestCount > previousRequestCount) {
+                showNewFriendPopup();
+            }
+
+            previousRequestCount = currentRequestCount;
+            if (!initialRequestsLoaded) {
+                initialRequestsLoaded = true;
+            }
         });
     }
 
     function checkNotifications() {
         const notificationsRef = db.ref('notifications/' + currentUserId);
+        const modalContent = document.getElementById('notification-modal-content');
+        
         notificationsRef.once('value').then(snapshot => {
-            if (!snapshot.exists()) { alert("You have no new notifications."); return; }
-            let alertMessages = "Your Notifications:\n\n";
-            const updates = {};
-            snapshot.forEach(child => {
-                alertMessages += `- ${child.val().message}\n`;
-                updates[child.key + "/read"] = true;
-            });
-            alert(alertMessages);
-            notificationsRef.update(updates);
+            if (!snapshot.exists()) {
+                modalContent.innerHTML = '<p class="text-center">You have no new notifications.</p>';
+            } else {
+                let messagesHtml = '<ul>';
+                const updates = {};
+                snapshot.forEach(child => {
+                    messagesHtml += `<li>${child.val().message}</li>`;
+                    updates[child.key + "/read"] = true;
+                });
+                messagesHtml += '</ul>';
+                modalContent.innerHTML = messagesHtml;
+                notificationsRef.update(updates);
+            }
+            toggleNotificationModal(true);
         });
     }
 
@@ -539,7 +642,21 @@
         });
     }
 
-    function editComment(postId, commentId) { /* ... */ }
+    function editComment(postId, commentId) {
+        const commentRef = db.ref(`comments/${postId}/${commentId}`);
+        commentRef.once('value', snapshot => {
+            const comment = snapshot.val();
+            if (!comment || comment.uid !== currentUserId) {
+                alert("You can only edit your own comments.");
+                return;
+            }
+            const newText = prompt("Edit your comment:", comment.text);
+            if (newText !== null && newText.trim() !== "") {
+                commentRef.update({ text: newText.trim() })
+                    .catch(err => alert("Error editing comment: " + err.message));
+            }
+        });
+    }
     
     function deleteComment(postId, commentId) {
         const postAuthorId = postsData[postId]?.uid;
@@ -580,23 +697,68 @@
         });
     }
     
+    // The core loadPosts function is now feed-aware
     function loadPosts(isInitialLoad = false) {
-        if (isLoading) return; isLoading = true;
-        const feed = document.getElementById("feed"), loadMoreContainer = document.getElementById("load-more-container");
-        if (isInitialLoad) { feed.innerHTML = ""; postsData = {}; lastLoadedPostTimestamp = null; }
-        loadMoreContainer.innerHTML = '<p class="text-gray-500">Loading posts...</p>';
+        if (isLoading) return; 
+        isLoading = true;
+        const feed = document.getElementById("feed");
+        const loadMoreContainer = document.getElementById("load-more-container");
+
+        if (isInitialLoad) { 
+            feed.innerHTML = ""; 
+            postsData = {}; 
+            lastLoadedPostTimestamp = null; 
+        }
+
+        loadMoreContainer.innerHTML = `<p class="text-gray-500">Loading ${currentFeedMode} posts...</p>`;
+        
         let query = db.ref("posts").orderByChild("timestamp");
-        if (lastLoadedPostTimestamp) query = query.endAt(lastLoadedPostTimestamp - 1).limitToLast(POSTS_PER_PAGE);
-        else query = query.limitToLast(POSTS_PER_PAGE);
+        if (lastLoadedPostTimestamp) {
+            query = query.endAt(lastLoadedPostTimestamp - 1).limitToLast(POSTS_PER_PAGE);
+        } else {
+            query = query.limitToLast(POSTS_PER_PAGE);
+        }
+        
         query.once("value", snapshot => {
             loadMoreContainer.innerHTML = "";
-            if (!snapshot.exists()) { loadMoreContainer.innerHTML = '<p class="text-gray-500">No more posts to show.</p>'; isLoading = false; return; }
+            if (!snapshot.exists()) {
+                if(isInitialLoad || feed.innerHTML === "") {
+                    feed.innerHTML = `<p class="text-center text-gray-500 py-10">No posts to show in the ${currentFeedMode} feed.</p>`;
+                } else {
+                    loadMoreContainer.innerHTML = '<p class="text-gray-500">You have reached the end.</p>';
+                }
+                isLoading = false; 
+                return; 
+            }
+            
             const posts = [];
-            snapshot.forEach(child => { const post = { key: child.key, ...child.val() }; if (!postsData[post.key]) { posts.unshift(post); postsData[post.key] = post; } });
-            if (posts.length > 0) lastLoadedPostTimestamp = posts[posts.length - 1].timestamp;
-            posts.forEach(post => {
+            snapshot.forEach(child => { 
+                const post = { key: child.key, ...child.val() }; 
+                if (!postsData[post.key]) { 
+                    posts.unshift(post); 
+                    postsData[post.key] = post; 
+                } 
+            });
+
+            if (posts.length > 0) {
+                lastLoadedPostTimestamp = posts[posts.length - 1].timestamp;
+            }
+
+            const filteredPosts = (currentFeedMode === 'friends')
+                ? posts.filter(post => friendsList.includes(post.uid) || post.uid === currentUserId)
+                : posts;
+
+            if (filteredPosts.length === 0 && snapshot.numChildren() > 0) {
+                isLoading = false;
+                loadPosts(false);
+                return;
+            }
+
+            filteredPosts.forEach(post => {
                 if (!post.authorUsername) return;
-                const postEl = document.createElement("div"); postEl.id = `post-${post.key}`; postEl.className = "bg-white p-4 rounded-lg shadow";
+                const postEl = document.createElement("div"); 
+                postEl.id = `post-${post.key}`; 
+                postEl.className = "bg-white p-4 rounded-lg shadow";
                 const time = new Date(post.timestamp).toLocaleString();
                 let menuHtml = (post.uid === currentUserId) ? `<div class="post-menu float-right relative"><span class="text-gray-500 cursor-pointer text-lg">⋮</span><div class="post-menu-content"><a onclick="editPost('${post.key}')">Edit</a><a onclick="deletePost('${post.key}')">Delete</a></div></div>` : '';
                 let warningBannerHtml = (post.reportCount >= 5) ? `<div class="p-2 my-3 bg-red-100 border-l-4 border-red-500 text-red-700"><p class="font-bold">Warning:</p><p>This post is under review.</p></div>` : '';
@@ -616,11 +778,24 @@
                 
                 postEl.innerHTML = `<div class="flex justify-between items-start"><div class="flex items-center mb-3"><div class="text-4xl w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full mr-3">${post.authorEmoji || '👤'}</div><div><a href="view_profile.html?uid=${post.uid}" class="text-md text-green-700 font-bold hover:underline">${post.authorName || 'Anonymous'}</a><p class="text-xs text-gray-500">${time}</p></div></div>${menuHtml}</div>${warningBannerHtml}<p class="text-gray-800 mt-1 whitespace-pre-wrap post-text">${post.text}</p>${post.image ? `<img src="${post.image}" class="mt-2 rounded max-h-96 object-contain w-full post-image" />` : ""}${originalPostHtml}<div id="reactions-${post.key}" class="flex justify-around items-center mt-4 pt-3 text-sm border-t"><button id="btnBarakallah-${post.key}" class="reaction-btn text-red-600"><span>❤️</span><span>BarakAllah (0)</span></button><button id="btnSubhanallah-${post.key}" class="reaction-btn text-yellow-600"><span>🌟</span><span>SubhanAllah (0)</span></button><button id="btnAmeen-${post.key}" class="reaction-btn text-green-600"><span>🙌</span><span>Ameen (0)</span></button></div><div class="border-t mt-3 pt-3 flex justify-between items-center"><button id="toggle-comments-btn-${post.key}" onclick="toggleCommentSection('${post.key}')" class="text-sm font-semibold text-gray-600 hover:text-green-700">💬 Comments (${post.commentCount || 0})</button><button onclick="openShareModal('${post.key}')" class="text-sm font-semibold text-gray-600 hover:text-green-700">🔄 Share</button><button id="report-btn-${post.key}" onclick="toggleReportPost('${post.key}', '${post.uid}')" class="reaction-btn text-xs bg-red-50 hover:bg-red-100 text-red-700">Report (0)</button></div><div id="comment-section-wrapper-${post.key}" data-loaded="false" class="mt-3" style="display: none;"><div id="comments-container-${post.key}" class="space-y-2 mb-3 max-h-40 overflow-y-auto"></div><div class="flex space-x-2"><input id="comment-input-${post.key}" type="text" placeholder="Write a comment..." class="w-full p-2 border border-gray-300 rounded"><button onclick="addComment('${post.key}', '${post.uid}')" class="bg-green-600 hover:bg-green-700 text-white px-4 rounded font-semibold">Send</button></div></div>`;
                 feed.appendChild(postEl);
-                attachReactionListeners(post.key); setupReportButton(post.key);
+                attachReactionListeners(post.key); 
+                setupReportButton(post.key);
                 db.ref(`posts/${post.key}/commentCount`).on('value', snap => { const btn = document.getElementById(`toggle-comments-btn-${post.key}`); if(btn) btn.textContent = `💬 Comments (${snap.val() || 0})`; });
             });
-            if (posts.length >= POSTS_PER_PAGE) { const loadMoreBtn = document.createElement('button'); loadMoreBtn.textContent = 'Load More'; loadMoreBtn.className = 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full'; loadMoreBtn.onclick = () => loadPosts(); loadMoreContainer.appendChild(loadMoreBtn); } 
-            else { loadMoreContainer.innerHTML = '<p class="text-gray-500">You have reached the end.</p>'; }
+
+            if (posts.length >= POSTS_PER_PAGE) { 
+                const loadMoreBtn = document.createElement('button'); 
+                loadMoreBtn.textContent = 'Load More'; 
+                loadMoreBtn.className = 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full'; 
+                loadMoreBtn.onclick = () => loadPosts(false);
+                loadMoreContainer.appendChild(loadMoreBtn); 
+            } else {
+                if (isInitialLoad && filteredPosts.length === 0) {
+                     feed.innerHTML = `<p class="text-center text-gray-500 py-10">No posts to show in the ${currentFeedMode} feed.</p>`;
+                } else if (!isInitialLoad) {
+                     loadMoreContainer.innerHTML = '<p class="text-gray-500">You have reached the end.</p>'; 
+                }
+            }
             isLoading = false;
         });
     }
@@ -635,6 +810,7 @@
             if(!snapshot.exists()) { commentsContainer.innerHTML = '<p class="text-sm text-gray-500">Be the first to comment!</p>'; }
             snapshot.forEach(childSnapshot => {
                 const comment = childSnapshot.val(), commentId = childSnapshot.key, commentEl = document.createElement('div');
+                commentEl.id = `comment-${commentId}`; // Add an ID to the comment element
                 commentEl.className = "flex items-start space-x-2 bg-gray-100 p-2 rounded";
                 let commentMenu = '';
                 if (comment.uid === currentUserId || postAuthorId === currentUserId) {
@@ -645,7 +821,7 @@
                     commentMenu += `<a onclick="deleteComment('${postId}', '${commentId}')">Delete</a></div></div>`;
                 }
 
-                commentEl.innerHTML = `<div class="text-2xl">${comment.authorEmoji || '👤'}</div><div class="flex-1"><div class="flex justify-between items-start"><a href="view_profile.html?uid=${comment.uid}" class="text-sm font-semibold text-green-800 hover:underline">${comment.authorName || 'Anonymous'}</a>${commentMenu}</div><p class="text-gray-700 text-sm">${comment.text}</p></div>`;
+                commentEl.innerHTML = `<div class="text-2xl">${comment.authorEmoji || '👤'}</div><div class="flex-1"><div class="flex justify-between items-start"><a href="view_profile.html?uid=${comment.uid}" class="text-sm font-semibold text-green-800 hover:underline">${comment.authorName || 'Anonymous'}</a>${commentMenu}</div><p class="text-gray-700 text-sm comment-text-p">${comment.text}</p></div>`;
                 commentsContainer.appendChild(commentEl);
             });
         });
@@ -690,4 +866,4 @@
     function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
   </script>
 </body>
-</html>
+  </html>
