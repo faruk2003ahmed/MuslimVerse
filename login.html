@@ -11,84 +11,10 @@
 
   <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-
-  <style>
-    .logo-magic-container {
-      height: 120px;
-      margin: 1.5rem auto; /* Added more margin for the glow */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      perspective: 800px;
-    }
-
-    #magic-logo {
-      width: 100px;
-      height: 100px;
-      opacity: 0;
-      transform: scale(0);
-      /* Default color for the glow */
-      --magic-glow-color: #ffd700; 
-    }
-
-    /* --- Magic Entry Animations with Glow --- */
-    .animate-in-pop {
-      animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-    .animate-in-swirl {
-      animation: swirlIn 1s ease-out forwards;
-    }
-    .animate-in-drop {
-      animation: dropIn 1s ease-out forwards;
-    }
-
-    /* --- Magic Exit Animations with Glow --- */
-    .animate-out-shrink {
-      animation: shrinkOut 0.8s ease-in forwards;
-    }
-    .animate-out-lift {
-      animation: liftUp 1s ease-in forwards;
-    }
-    .animate-out-flip {
-       animation: flipOut 1s ease-in forwards;
-    }
-
-    /* --- Keyframes with Glow Effect using drop-shadow --- */
-    @keyframes popIn {
-      0% { opacity: 0; transform: scale(0.3); filter: drop-shadow(0 0 5px var(--magic-glow-color)); }
-      100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 25px var(--magic-glow-color)); }
-    }
-    @keyframes swirlIn {
-      0% { opacity: 0; transform: scale(0) rotate(-540deg); filter: drop-shadow(0 0 5px var(--magic-glow-color));}
-      100% { opacity: 1; transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 25px var(--magic-glow-color));}
-    }
-    @keyframes dropIn {
-        0% { opacity: 0; transform: translateY(-200px) scale(0.8); filter: drop-shadow(0 0 5px var(--magic-glow-color));}
-        100% { opacity: 1; transform: translateY(0) scale(1); filter: drop-shadow(0 0 25px var(--magic-glow-color));}
-    }
-
-    @keyframes shrinkOut {
-      0% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 25px var(--magic-glow-color));}
-      100% { opacity: 0; transform: scale(0); filter: drop-shadow(0 0 0px var(--magic-glow-color));}
-    }
-    @keyframes liftUp {
-      0% { opacity: 1; transform: translateY(0); filter: drop-shadow(0 0 25px var(--magic-glow-color));}
-      100% { opacity: 0; transform: translateY(-150px); filter: drop-shadow(0 0 0px var(--magic-glow-color));}
-    }
-    @keyframes flipOut {
-        0% { opacity: 1; transform: rotateY(0deg); filter: drop-shadow(0 0 25px var(--magic-glow-color));}
-        100% { opacity: 0; transform: rotateY(90deg); filter: drop-shadow(0 0 0px var(--magic-glow-color));}
-    }
-  </style>
 </head>
 <body class="bg-green-50 flex items-center justify-center min-h-screen px-4">
 
   <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
-
-    <div class="logo-magic-container">
-      <img src="logo.png" alt="MuslimVerse Logo" id="magic-logo" />
-    </div>
-    
     <h1 class="text-3xl font-extrabold text-center text-green-700 mb-4">🕋 MuslimVerse</h1>
     <h2 class="text-lg font-semibold mb-4 text-center">🔑 Login</h2>
 
@@ -102,6 +28,7 @@
         Login
       </button>
 
+      <!-- Optional: Sign Up Link -->
       <a href="signup.html" class="block text-center text-green-700 mt-4 hover:underline font-medium">
         👉 Create a New Account
       </a>
@@ -124,43 +51,22 @@
     const auth = firebase.auth();
 
     function login() {
-      // Login logic...
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const loginStatus = document.getElementById("loginStatus");
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          loginStatus.textContent = "✅ Login successful!";
+          setTimeout(() => {
+            // Replace this with your dashboard or home page
+            window.location.href = "home.html";
+          }, 1000);
+        })
+        .catch((error) => {
+          loginStatus.textContent = "❌ " + error.message;
+        });
     }
-
-    // --- The Magic Show Script with Colored Lights ---
-    const logo = document.getElementById('magic-logo');
-    
-    // List of beautiful glow colors. You can add more!
-    const glowColors = ['#E9C46A', '#2A9D8F', '#F4A261', '#264653', '#E76F51'];
-
-    const entryAnimations = ['animate-in-pop', 'animate-in-swirl', 'animate-in-drop'];
-    const exitAnimations = ['animate-out-shrink', 'animate-out-lift', 'animate-out-flip'];
-
-    function performMagicShow() {
-      // 1. Pick a random glow color and apply it via CSS variable
-      const randomColor = glowColors[Math.floor(Math.random() * glowColors.length)];
-      logo.style.setProperty('--magic-glow-color', randomColor);
-
-      // 2. Pick a random entry animation
-      const randomEntry = entryAnimations[Math.floor(Math.random() * entryAnimations.length)];
-      logo.className = randomEntry;
-
-      logo.addEventListener('animationend', () => {
-        setTimeout(() => {
-          const randomExit = exitAnimations[Math.floor(Math.random() * exitAnimations.length)];
-          logo.className = randomExit;
-          
-          logo.addEventListener('animationend', () => {
-             setTimeout(() => {
-                performMagicShow();
-             }, 1000); 
-          }, { once: true });
-
-        }, 2500);
-      }, { once: true });
-    }
-
-    window.addEventListener('load', performMagicShow);
   </script>
 </body>
 </html>
