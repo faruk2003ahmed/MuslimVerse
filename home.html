@@ -116,10 +116,77 @@
         background-color: white;
         color: #059669;
     }
+    
+    /* ================================================= */
+    /*          "See More..." এর জন্য পরিবর্তিত CSS         */
+    /* ================================================= */
+    .post-text-wrapper {
+        position: relative;
+        overflow: hidden;
+        transition: max-height 0.5s ease-out;
+    }
+
+    /* কলাপসড অবস্থায় উচ্চতা এখন স্ক্রিনের ৪ ভাগের ১ ভাগ */
+    .post-text-wrapper.collapsed {
+        max-height: calc(100vh / 4); 
+    }
+
+    .see-more-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(to top, white, rgba(255, 255, 255, 0));
+        padding: 10px 10px 5px 30px;
+        cursor: pointer;
+        color: #059669;
+        font-weight: bold;
+        display: none;
+    }
+
+    .post-text-wrapper.collapsed .see-more-btn {
+        display: block;
+    }
+    
+    /* ================================================= */
+    /*      Pull to Refresh এর জন্য নতুন CSS             */
+    /* ================================================= */
+    #pull-to-refresh-indicator {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        transform: translateY(-100%); /* শুরুতে উপরে লুকানো থাকবে */
+        transition: transform 0.3s;
+        z-index: 9;
+        padding-top: 75px;
+        padding-bottom: 10px;
+    }
+    #pull-to-refresh-indicator.visible {
+        transform: translateY(0);
+    }
+    #pull-to-refresh-indicator .spinner {
+        display: inline-block;
+        border: 4px solid rgba(0,0,0,0.1);
+        border-left-color: #059669;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    /* ================================================= */
 
   </style>
 </head>
 <body class="bg-green-50 min-h-screen text-gray-800">
+
+  <!-- Pull to Refresh এর জন্য নতুন HTML -->
+  <div id="pull-to-refresh-indicator">
+      <div class="spinner"></div>
+  </div>
 
   <!-- Header -->
   <header class="bg-green-700 text-white shadow-lg sticky top-0 z-20">
@@ -267,11 +334,11 @@
     const POSTS_PER_PAGE = 10;
     let postToShareId = null;
 
-    // Variables for Feed Control
-    let currentFeedMode = 'public'; // 'public' or 'friends'
+    // Feed Control
+    let currentFeedMode = 'public';
     let friendsList = [];
     
-    // Variables for new request popup
+    // New request popup
     let initialRequestsLoaded = false;
     let previousRequestCount = 0;
 
@@ -292,9 +359,105 @@
           listenForFriendRequests();
           listenForUnreadMessages(currentUserId);
           makeMenuDraggable();
+          initPullToRefresh(); // Pull to Refresh চালু করা হচ্ছে
       }
     });
     
+    // ==========================================================
+    //          "See More..." এর জন্য পরিবর্তিত ফাংশন
+    // ==========================================================
+    function manageSeeMore(postElement) {
+        const postTextElement = postElement.querySelector('.post-text');
+        if (!postTextElement) return;
+
+        const textWrapper = document.createElement('div');
+        textWrapper.className = 'post-text-wrapper';
+        postTextElement.parentNode.insertBefore(textWrapper, postTextElement);
+        textWrapper.appendChild(postTextElement);
+
+        const seeMoreButton = document.createElement('span');
+        seeMoreButton.className = 'see-more-btn';
+        seeMoreButton.innerText = 'See more...'; // ইংরেজি লেখা
+        textWrapper.appendChild(seeMoreButton);
+
+        // উচ্চতা এখন স্ক্রিনের ৪ ভাগের ১ ভাগ অনুযায়ী পরীক্ষা করা হচ্ছে
+        const collapsedHeight = window.innerHeight / 4;
+        if (postTextElement.scrollHeight > collapsedHeight) {
+            textWrapper.classList.add('collapsed');
+        } else {
+            seeMoreButton.style.display = 'none';
+        }
+
+        seeMoreButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            textWrapper.classList.remove('collapsed');
+            textWrapper.style.maxHeight = postTextElement.scrollHeight + 'px';
+            seeMoreButton.style.display = 'none';
+        });
+
+        // ডাবল ক্লিক করে কলাপস করার সুবিধা যোগ করা হয়েছে
+        textWrapper.addEventListener('dblclick', () => {
+            if (!textWrapper.classList.contains('collapsed')) {
+                textWrapper.classList.add('collapsed');
+                textWrapper.style.removeProperty('max-height');
+                seeMoreButton.style.display = 'block';
+            }
+        });
+    }
+
+    // ==========================================================
+    //        Pull to Refresh এর জন্য নতুন ফাংশন
+    // ==========================================================
+    let isRefreshing = false;
+    function initPullToRefresh() {
+        let touchStartY = 0;
+        const refreshThreshold = 80; // কতো পিক্সেল টানলে রিফ্রেশ হবে
+        const indicator = document.getElementById('pull-to-refresh-indicator');
+        const mainContent = document.querySelector('main');
+
+        document.addEventListener('touchstart', e => {
+            if (window.scrollY === 0 && !isRefreshing) {
+                touchStartY = e.touches[0].clientY;
+            } else {
+                touchStartY = 0;
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchmove', e => {
+            if (touchStartY === 0 || isRefreshing) return;
+
+            const pullDistance = e.touches[0].clientY - touchStartY;
+            if (pullDistance > 0) {
+                e.preventDefault(); // ভার্টিকাল স্ক্রল বন্ধ করা
+                indicator.classList.add('visible');
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', e => {
+            if (touchStartY === 0 || isRefreshing) return;
+
+            const pullDistance = e.changedTouches[0].clientY - touchStartY;
+
+            if (pullDistance > refreshThreshold) {
+                isRefreshing = true;
+                indicator.classList.add('visible');
+                loadPosts(true); // ডেটা রিলোড করা
+            } else {
+                indicator.classList.remove('visible');
+            }
+            touchStartY = 0;
+        });
+    }
+
+    function resetPullToRefresh() {
+        const indicator = document.getElementById('pull-to-refresh-indicator');
+        if (indicator) {
+            indicator.classList.remove('visible');
+        }
+        isRefreshing = false;
+    }
+
+
     // Function to switch between feeds
     function switchFeedMode(mode) {
         if (isLoading || currentFeedMode === mode) return;
@@ -709,8 +872,10 @@
             postsData = {}; 
             lastLoadedPostTimestamp = null; 
         }
-
-        loadMoreContainer.innerHTML = `<p class="text-gray-500">Loading ${currentFeedMode} posts...</p>`;
+        
+        if (!isRefreshing) {
+            loadMoreContainer.innerHTML = `<p class="text-gray-500">Loading ${currentFeedMode} posts...</p>`;
+        }
         
         let query = db.ref("posts").orderByChild("timestamp");
         if (lastLoadedPostTimestamp) {
@@ -728,6 +893,7 @@
                     loadMoreContainer.innerHTML = '<p class="text-gray-500">You have reached the end.</p>';
                 }
                 isLoading = false; 
+                if (isRefreshing) resetPullToRefresh();
                 return; 
             }
             
@@ -778,6 +944,8 @@
                 
                 postEl.innerHTML = `<div class="flex justify-between items-start"><div class="flex items-center mb-3"><div class="text-4xl w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full mr-3">${post.authorEmoji || '👤'}</div><div><a href="view_profile.html?uid=${post.uid}" class="text-md text-green-700 font-bold hover:underline">${post.authorName || 'Anonymous'}</a><p class="text-xs text-gray-500">${time}</p></div></div>${menuHtml}</div>${warningBannerHtml}<p class="text-gray-800 mt-1 whitespace-pre-wrap post-text">${post.text}</p>${post.image ? `<img src="${post.image}" class="mt-2 rounded max-h-96 object-contain w-full post-image" />` : ""}${originalPostHtml}<div id="reactions-${post.key}" class="flex justify-around items-center mt-4 pt-3 text-sm border-t"><button id="btnBarakallah-${post.key}" class="reaction-btn text-red-600"><span>❤️</span><span>BarakAllah (0)</span></button><button id="btnSubhanallah-${post.key}" class="reaction-btn text-yellow-600"><span>🌟</span><span>SubhanAllah (0)</span></button><button id="btnAmeen-${post.key}" class="reaction-btn text-green-600"><span>🙌</span><span>Ameen (0)</span></button></div><div class="border-t mt-3 pt-3 flex justify-between items-center"><button id="toggle-comments-btn-${post.key}" onclick="toggleCommentSection('${post.key}')" class="text-sm font-semibold text-gray-600 hover:text-green-700">💬 Comments (${post.commentCount || 0})</button><button onclick="openShareModal('${post.key}')" class="text-sm font-semibold text-gray-600 hover:text-green-700">🔄 Share</button><button id="report-btn-${post.key}" onclick="toggleReportPost('${post.key}', '${post.uid}')" class="reaction-btn text-xs bg-red-50 hover:bg-red-100 text-red-700">Report (0)</button></div><div id="comment-section-wrapper-${post.key}" data-loaded="false" class="mt-3" style="display: none;"><div id="comments-container-${post.key}" class="space-y-2 mb-3 max-h-40 overflow-y-auto"></div><div class="flex space-x-2"><input id="comment-input-${post.key}" type="text" placeholder="Write a comment..." class="w-full p-2 border border-gray-300 rounded"><button onclick="addComment('${post.key}', '${post.uid}')" class="bg-green-600 hover:bg-green-700 text-white px-4 rounded font-semibold">Send</button></div></div>`;
                 feed.appendChild(postEl);
+                
+                manageSeeMore(postEl);
                 attachReactionListeners(post.key); 
                 setupReportButton(post.key);
                 db.ref(`posts/${post.key}/commentCount`).on('value', snap => { const btn = document.getElementById(`toggle-comments-btn-${post.key}`); if(btn) btn.textContent = `💬 Comments (${snap.val() || 0})`; });
@@ -797,6 +965,7 @@
                 }
             }
             isLoading = false;
+            if (isRefreshing) resetPullToRefresh();
         });
     }
 
@@ -866,4 +1035,4 @@
     function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
   </script>
 </body>
-  </html>
+</html>
