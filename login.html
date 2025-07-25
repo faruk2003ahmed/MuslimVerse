@@ -20,15 +20,16 @@
 
     <form onsubmit="login(); return false;">
       <input id="email" type="email" placeholder="Email"
-        class="w-full p-3 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-300" />
+        class="w-full p-3 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-300" required />
       <input id="password" type="password" placeholder="Password"
-        class="w-full p-3 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-300" />
-      <button type="submit"
-        class="w-full bg-green-600 text-white p-3 rounded font-semibold hover:bg-green-700 transition duration-200">
-        Login
+        class="w-full p-3 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-300" required />
+      <button id="login-btn" type="submit"
+        class="w-full bg-green-600 text-white p-3 rounded font-semibold hover:bg-green-700 transition duration-200 flex items-center justify-center">
+        <span id="login-btn-text">Login</span>
+        <span id="login-spinner" class="hidden w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin ml-2"></span>
       </button>
 
-      <!-- Optional: Sign Up Link -->
+      <!-- Sign Up Link -->
       <a href="signup.html" class="block text-center text-green-700 mt-4 hover:underline font-medium">
         👉 Create a New Account
       </a>
@@ -54,17 +55,39 @@
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       const loginStatus = document.getElementById("loginStatus");
+      
+      // লোডিং স্পিনার দেখানোর জন্য UI আপডেট
+      const loginBtn = document.getElementById("login-btn");
+      const loginBtnText = document.getElementById("login-btn-text");
+      const loginSpinner = document.getElementById("login-spinner");
+
+      loginBtn.disabled = true;
+      loginBtnText.textContent = "Logging in...";
+      loginSpinner.classList.remove("hidden");
+      loginStatus.textContent = "";
 
       auth.signInWithEmailAndPassword(email, password)
         .then(() => {
-          loginStatus.textContent = "✅ Login successful!";
+          loginStatus.style.color = 'green';
+          loginStatus.textContent = "✅ Login successful! Redirecting...";
+          
+          // ==============================================
+          //      নতুন: পপ-আপ দেখানোর জন্য ফ্ল্যাগ সেট করা
+          // ==============================================
+          sessionStorage.setItem('justLoggedIn', 'true');
+          
           setTimeout(() => {
-            // Replace this with your dashboard or home page
             window.location.href = "home.html";
           }, 1000);
         })
         .catch((error) => {
+          loginStatus.style.color = 'red';
           loginStatus.textContent = "❌ " + error.message;
+          
+          // UI রিসেট করা
+          loginBtn.disabled = false;
+          loginBtnText.textContent = "Login";
+          loginSpinner.classList.add("hidden");
         });
     }
   </script>
