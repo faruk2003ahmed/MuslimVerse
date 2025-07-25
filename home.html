@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="bn" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -22,83 +22,76 @@
     .report-btn-reported { background-color: #fecaca; color: #991b1b; font-weight: bold; }
 
     /* Modal Styles */
-    .modal-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.6); z-index: 30;
-        display: none; justify-content: center; align-items: center;
-    }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 30; display: none; justify-content: center; align-items: center; }
 
-    /* Custom Notification Modal Style */
-    #notification-modal-content ul { list-style-position: inside; padding-left: 10px; }
-    #notification-modal-content li { margin-bottom: 8px; padding-left: 8px; border-left: 3px solid #10b981; }
-
-    /* Floating Menu Styles (Top-Right) */
-    .floating-menu-container {
-        position: fixed; top: 80px; right: 20px; z-index: 25;
-        display: flex; flex-direction: column; align-items: center; gap: 14px;
-    }
-
-    .floating-btn {
-        width: 56px; height: 56px; background-color: #059669; color: white; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); cursor: pointer; border: none; text-decoration: none;
-        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-    }
+    /* Floating Menu Styles */
+    .floating-menu-container { position: fixed; top: 80px; right: 20px; z-index: 25; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .floating-btn { width: 56px; height: 56px; background-color: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); cursor: pointer; border: none; text-decoration: none; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
     .floating-btn:hover { background-color: #047857; }
     .floating-menu-toggle { cursor: grab; }
-
     .floating-menu-item { transform: scale(0); opacity: 0; visibility: hidden; position: absolute; }
     .floating-menu-container.active .floating-menu-item { transform: scale(1); opacity: 1; visibility: visible; position: relative; }
-    .floating-menu-container[style*="column-reverse"] .floating-menu-toggle { order: -1; }
-    #search-results-container { max-height: 300px; overflow-y: auto; }
-    
-    /* Blinking Animation for Friend Request Icon */
+
+    /* Animation Styles */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { display: inline-block; border: 4px solid rgba(0,0,0,0.1); border-left-color: #059669; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
     .blinking-icon { animation: blink 1.5s infinite; border-radius: 50%; }
     @keyframes blink { 0% { background-color: #fca5a5; } 50% { background-color: #bbf7d0; } 100% { background-color: #fca5a5; } }
-    .blinking-icon svg { color: #1f2937; }
-    
-    /* CSS for Ringing Bell Animation */
-    @keyframes ring-animation { 0%, 100% { transform: rotate(0); } 10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); } 20%, 40%, 60%, 80% { transform: rotate(10deg); } }
     .ringing-bell { animation: ring-animation 1.5s infinite; }
+    @keyframes ring-animation { 0%, 100% { transform: rotate(0); } 10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); } 20%, 40%, 60%, 80% { transform: rotate(10deg); } }
 
-    /* CSS for Feed Toggle Buttons */
+    /* Feed Toggle Buttons */
     .feed-toggle-btn { transition: all 0.2s ease-in-out; border: 2px solid #059669; }
     .feed-toggle-btn.active { background-color: #059669; color: white; }
     .feed-toggle-btn:not(.active) { background-color: white; color: #059669; }
     
-    /* ================================================= */
-    /*          "See More..." এর জন্য CSS                 */
-    /* ================================================= */
+    /* "See More..." CSS */
     .post-text-wrapper { position: relative; overflow: hidden; transition: max-height 0.5s ease-out; }
-    
-    /* মূল পোস্টের জন্য কলাপসড উচ্চতা */
     .post-text-wrapper.collapsed { max-height: calc(100vh / 5); }
-
-    .see-more-btn {
-        position: absolute; bottom: 0; right: 0;
-        background: linear-gradient(to top, white, rgba(255, 255, 255, 0));
-        padding: 10px 10px 5px 30px; cursor: pointer; color: #059669; font-weight: bold; display: none;
-    }
+    .see-more-btn { position: absolute; bottom: 0; right: 0; background: linear-gradient(to top, white, rgba(255, 255, 255, 0)); padding: 10px 10px 5px 30px; cursor: pointer; color: #059669; font-weight: bold; display: none; }
     .post-text-wrapper.collapsed .see-more-btn { display: block; }
     
-    /* ================================================= */
-    /*      Pull to Refresh and Loading এর জন্য CSS       */
-    /* ================================================= */
-    #pull-to-refresh-indicator {
-        position: fixed; top: 0; left: 0; right: 0; text-align: center;
-        transform: translateY(-100%); transition: transform 0.3s;
-        z-index: 9; padding-top: 75px; padding-bottom: 10px;
-    }
+    /* Pull to Refresh CSS */
+    #pull-to-refresh-indicator { position: fixed; top: 0; left: 0; right: 0; text-align: center; transform: translateY(-100%); transition: transform 0.3s; z-index: 9; padding-top: 75px; padding-bottom: 10px; }
     #pull-to-refresh-indicator.visible { transform: translateY(0); }
-    .spinner {
-        display: inline-block; border: 4px solid rgba(0,0,0,0.1); border-left-color: #059669;
-        border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;
-    }
     .loading-container { display: flex; justify-content: center; align-items: center; padding: 2.5rem; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Video Embed CSS */
+    .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; margin-top: 1rem; margin-bottom: 1rem; border-radius: 8px; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    
+    /* Donation Popup Style */
+    #donation-popup-overlay { z-index: 50; }
+    
+    /* Donation Tooltip CSS */
+    #donate-tooltip { visibility: hidden; opacity: 0; transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out; transform: translateY(10px); pointer-events: none; }
+    #donate-tooltip.visible { visibility: visible; opacity: 1; transform: translateY(0); }
+    #donate-tooltip::after {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      left: 75%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: transparent transparent #fbbf24 transparent;
+    }
   </style>
 </head>
 <body class="bg-green-50 min-h-screen text-gray-800">
+
+  <!-- Donation Login Popup -->
+  <div id="donation-popup-overlay" class="modal-overlay">
+      <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-md relative text-center mx-4">
+          <button id="close-popup-btn" class="absolute top-2 right-3 text-3xl text-gray-400 hover:text-gray-800">×</button>
+          <div id="popup-content-wrapper" class="cursor-pointer">
+              <p class="text-xl mb-4 font-serif">🤲 “যারা আল্লাহর রাস্তায় ব্যয় করে, আল্লাহ তাদের মাল বৃদ্ধি করে দেন।”</p>
+              <p class="text-md font-semibold mb-4 text-gray-700">📖 – আল-কুরআন (২:২৬১)</p>
+              <p class="text-gray-800 my-5">MuslimVerse একটি হালাল, নিরাপদ ও শান্তিপূর্ণ মুসলিম কমিউনিটি তৈরি করছে — আপনার একটি ছোট ডোনেশন হতে পারে বিশাল সাওয়াবের কারণ।</p>
+              <p class="text-green-700 font-bold text-lg mt-4 animate-pulse">🎁 সাদাকাহ জারিয়াহ হিসেবে আজই অংশ নিন।</p>
+          </div>
+      </div>
+  </div>
 
   <!-- Pull to Refresh Indicator -->
   <div id="pull-to-refresh-indicator"><div class="spinner"></div></div>
@@ -110,13 +103,21 @@
             <span class="mr-2 text-2xl">🕋</span>
             <span>MuslimVerse</span>
         </a>
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-2 md:space-x-3 relative">
             <a href="requests.html" id="friend-requests-btn" title="Friend Requests" class="p-2 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" /></svg>
             </a>
-            <button onclick="checkNotifications()" id="notification-btn" class="text-sm bg-yellow-400 text-black font-semibold px-3 py-1 rounded-md hover:bg-yellow-500 relative">
-                Notifications
-                <span id="notification-dot" class="absolute top-0 right-0 -mt-1 -mr-1 w-3 h-3 bg-red-500 rounded-full" style="display: none;"></span>
+            
+            <a href="donation.html" title="দান করুন" class="text-sm bg-green-500 text-white font-semibold px-3 py-1.5 rounded-md hover:bg-green-600 flex items-center gap-1.5 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 5a3 3 0 015.242-2.243l1.264 1.263a.5.5 0 00.707 0l1.264-1.263A3 3 0 0115 5v2.75a.75.75 0 01-1.5 0V5a1.5 1.5 0 00-1.5-1.5h-.035l-1.263 1.263a.5.5 0 01-.707 0L8.535 3.5H8.5A1.5 1.5 0 007 5v2.75a.75.75 0 01-1.5 0V5z" clip-rule="evenodd" /><path d="M4.5 9.5a.5.5 0 00-.5.5v5a.5.5 0 00.5.5h11a.5.5 0 00.5-.5v-5a.5.5 0 00-.5-.5h-11zM10 10.25a.75.75 0 01.75.75v.01a.75.75 0 01-1.5 0v-.01a.75.75 0 01.75-.75zM10 12a.75.75 0 01.75.75v.01a.75.75 0 01-1.5 0v-.01a.75.75 0 01.75-.75z" /></svg>
+                <span class="hidden md:inline">দান করুন</span>
+            </a>
+            
+            <span id="donate-tooltip" class="absolute top-full mt-3 right-10 md:right-20 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-md shadow-lg">দান করুন</span>
+
+            <button onclick="checkNotifications()" id="notification-btn" class="p-2 relative" title="Notifications">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" /></svg>
+                <span id="notification-dot" class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-green-700" style="display: none;"></span>
             </button>
         </div>
     </nav>
@@ -124,8 +125,12 @@
 
   <!-- Feed Toggle UI -->
   <div class="max-w-xl mx-auto p-4 flex justify-center space-x-2 bg-green-100 sticky top-[68px] z-10">
-    <button id="btn-public-feed" onclick="switchFeedMode('public')" class="feed-toggle-btn active w-full py-2 rounded-md font-semibold">🌍 Public Feed</button>
-    <button id="btn-friends-feed" onclick="switchFeedMode('friends')" class="feed-toggle-btn w-full py-2 rounded-md font-semibold">👥 Friends Feed</button>
+    <button id="btn-public-feed" onclick="switchFeedMode('public')" class="feed-toggle-btn active w-1/3 py-2 rounded-md font-semibold">🌍 Public</button>
+    <button id="btn-friends-feed" onclick="switchFeedMode('friends')" class="feed-toggle-btn w-1/3 py-2 rounded-md font-semibold">👥 Friends</button>
+    <button id="btn-video-feed" onclick="switchFeedMode('video')" class="feed-toggle-btn w-1/3 py-2 rounded-md font-semibold flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+        Videos
+    </button>
   </div>
 
   <!-- Main Content -->
@@ -134,12 +139,12 @@
     <div id="load-more-container" class="text-center p-4"></div>
   </main>
   
-  <!-- All Modals: Post, Search, Share, Notification -->
+  <!-- All Modals: Post, Search, Share, Notification, Edit -->
     <div id="post-modal-overlay" class="modal-overlay" onclick="toggleModal('post-modal-overlay', true)">
       <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-lg relative" onclick="event.stopPropagation()">
           <button onclick="toggleModal('post-modal-overlay')" class="absolute top-2 right-3 text-2xl text-gray-500 hover:text-gray-800">×</button>
           <h2 class="text-xl font-semibold mb-4 text-green-700">📢 What's on your mind?</h2>
-          <textarea id="postText" placeholder="Write something Islamic..." class="w-full p-2 border border-gray-300 rounded mb-2"></textarea>
+          <textarea id="postText" placeholder="Write something Islamic or share a video link..." class="w-full p-2 border border-gray-300 rounded mb-2"></textarea>
           <input id="postImage" type="text" placeholder="Optional Image URL" class="w-full p-2 border border-gray-300 rounded mb-2" />
           <button onclick="createPost()" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2">Post Now</button>
       </div>
@@ -152,7 +157,7 @@
             <input id="searchInput" type="text" placeholder="Enter username..." class="w-full p-2 border border-gray-300 rounded">
             <button onclick="searchUsers()" class="bg-green-600 hover:bg-green-700 text-white px-4 rounded font-semibold">Search</button>
           </div>
-          <div id="search-results-container"></div>
+          <div id="search-results-container" class="max-h-64 overflow-y-auto"></div>
       </div>
   </div>
   <div id="share-modal-overlay" class="modal-overlay" onclick="toggleModal('share-modal-overlay', true)">
@@ -178,6 +183,17 @@
               <button onclick="toggleNotificationModal(false)" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md">Close</button>
           </div>
       </div>
+  </div>
+  <div id="edit-post-modal-overlay" class="modal-overlay" onclick="toggleModal('edit-post-modal-overlay', true)">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-lg relative" onclick="event.stopPropagation()">
+        <button onclick="toggleModal('edit-post-modal-overlay')" class="absolute top-2 right-3 text-2xl text-gray-500 hover:text-gray-800">×</button>
+        <h2 class="text-xl font-semibold mb-4 text-green-700">✍️ Edit Your Post</h2>
+        <textarea id="editPostText" placeholder="Edit your post..." class="w-full p-2 border border-gray-300 rounded mb-2 h-32"></textarea>
+        <input id="editPostImage" type="text" placeholder="Edit image URL" class="w-full p-2 border border-gray-300 rounded mb-3" />
+        <button onclick="executeUpdate()" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2">
+          Save Changes
+        </button>
+    </div>
   </div>
 
   <!-- Floating Menu Container -->
@@ -225,6 +241,8 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
+
+    // Global Variables
     let currentUserId = null;
     let currentUserProfile = {};
     let postsData = {};
@@ -237,8 +255,11 @@
     let friendsList = [];
     let initialRequestsLoaded = false;
     let previousRequestCount = 0;
+    let editingPostId = null; 
+    let isRefreshing = false;
     const loadingSpinnerHtml = `<div class="loading-container"><div class="spinner"></div></div>`;
 
+    // --- Main Logic ---
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = "login.html"; } 
       else {
@@ -246,43 +267,203 @@
           db.ref('userProfiles/' + currentUserId).once('value').then(snap => {
               currentUserProfile = snap.val() || { fullName: user.email, profileEmoji: '👤', username: null };
           });
+          
           loadFriendsList().then(() => { loadPosts(true); });
           listenForNotifications();
           listenForFriendRequests();
           listenForUnreadMessages(currentUserId);
           makeMenuDraggable();
           initPullToRefresh();
+          animateDonateTooltip();
+
+          if (sessionStorage.getItem('justLoggedIn') === 'true') {
+              const popupOverlay = document.getElementById('donation-popup-overlay');
+              const closeBtn = document.getElementById('close-popup-btn');
+              const popupContent = document.getElementById('popup-content-wrapper');
+              if(popupOverlay) popupOverlay.style.display = 'flex';
+              if(closeBtn) closeBtn.onclick = (e) => { e.stopPropagation(); popupOverlay.style.display = 'none'; };
+              if(popupContent) popupContent.onclick = () => { window.location.href = 'donation.html'; };
+              sessionStorage.removeItem('justLoggedIn');
+          }
       }
     });
     
+    // --- Feature Functions ---
+    function animateDonateTooltip() {
+        const tooltip = document.getElementById('donate-tooltip');
+        if (!tooltip) return;
+        setInterval(() => {
+            tooltip.classList.add('visible');
+            setTimeout(() => { tooltip.classList.remove('visible'); }, 4000);
+        }, 15000);
+    }
+
+    function switchFeedMode(mode) {
+        if (isLoading || currentFeedMode === mode) return;
+        currentFeedMode = mode;
+        document.getElementById('btn-public-feed').classList.toggle('active', mode === 'public');
+        document.getElementById('btn-friends-feed').classList.toggle('active', mode === 'friends');
+        document.getElementById('btn-video-feed').classList.toggle('active', mode === 'video');
+        loadPosts(true);
+    }
+    
+    function loadPosts(isInitialLoad = false) {
+        if (isLoading) return;
+        isLoading = true;
+        const feed = document.getElementById("feed");
+        const loadMoreContainer = document.getElementById("load-more-container");
+
+        if (isInitialLoad) {
+            feed.innerHTML = loadingSpinnerHtml;
+            postsData = {}; lastLoadedPostTimestamp = null; loadMoreContainer.innerHTML = "";
+        } else {
+            loadMoreContainer.innerHTML = loadingSpinnerHtml;
+        }
+
+        let query = db.ref("posts").orderByChild("timestamp");
+        if (lastLoadedPostTimestamp) { query = query.endAt(lastLoadedPostTimestamp - 1).limitToLast(POSTS_PER_PAGE); } 
+        else { query = query.limitToLast(POSTS_PER_PAGE); }
+        
+        query.once("value", snapshot => {
+            if (isInitialLoad) { feed.innerHTML = ""; }
+            loadMoreContainer.innerHTML = "";
+
+            if (!snapshot.exists()) {
+                if (isInitialLoad || feed.innerHTML === "") { feed.innerHTML = `<p class="text-center text-gray-500 py-10">No posts found in the ${currentFeedMode} feed.</p>`; } 
+                else { loadMoreContainer.innerHTML = '<p class="text-gray-500">You have reached the end.</p>'; }
+                isLoading = false; if (isRefreshing) resetPullToRefresh(); return;
+            }
+            
+            const posts = [];
+            snapshot.forEach(child => { 
+                const post = { key: child.key, ...child.val() }; 
+                if (!postsData[post.key]) { posts.unshift(post); postsData[post.key] = post; } 
+            });
+
+            if (posts.length > 0) { lastLoadedPostTimestamp = posts[posts.length - 1].timestamp; }
+
+            let filteredPosts;
+            const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const facebookRegex = /(?:https?:\/\/)?(?:www\.)?facebook\.com\/(?:[a-zA-Z0-9.]+\/videos\/|watch\/\?v=|video\.php\?v=)(\d{10,})/;
+            if (currentFeedMode === 'friends') {
+                filteredPosts = posts.filter(post => friendsList.includes(post.uid) || post.uid === currentUserId);
+            } else if (currentFeedMode === 'video') {
+                filteredPosts = posts.filter(post => post.text && (youtubeRegex.test(post.text) || facebookRegex.test(post.text)));
+            } else {
+                filteredPosts = posts;
+            }
+
+            if (filteredPosts.length === 0 && snapshot.numChildren() > 0 && !isInitialLoad) {
+                isLoading = false; loadPosts(false); return;
+            }
+            
+            if (isInitialLoad && filteredPosts.length === 0) {
+                 feed.innerHTML = `<p class="text-center text-gray-500 py-10">No posts found in the ${currentFeedMode} feed.</p>`;
+            }
+
+            filteredPosts.forEach(post => {
+                if (!post.authorUsername) return;
+                const postEl = document.createElement("div"); 
+                postEl.id = `post-${post.key}`; postEl.className = "bg-white p-4 rounded-lg shadow";
+                const time = new Date(post.timestamp).toLocaleString();
+                let menuHtml = (post.uid === currentUserId) ? `<div class="post-menu float-right relative"><span class="text-gray-500 cursor-pointer text-lg">⋮</span><div class="post-menu-content"><a onclick="openEditModal('${post.key}')">Edit</a><a onclick="deletePost('${post.key}')">Delete</a></div></div>` : '';
+                let warningBannerHtml = (post.reportCount >= 5) ? `<div class="p-2 my-3 bg-red-100 border-l-4 border-red-500 text-red-700"><p class="font-bold">Warning:</p><p>This post is under review.</p></div>` : '';
+                const postContentHtml = embedVideoPlayer(post.text || "");
+                let originalPostHtml = '';
+                if (post.originalPost) {
+                    originalPostHtml = `<div class="mt-4 border-l-4 border-green-200 pl-3 pt-2 pb-3"><div class="flex items-center mb-2"><div class="text-2xl w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full mr-2">${post.originalPost.authorEmoji || '👤'}</div><div><a href="view_profile.html?uid=${post.originalPost.uid}" class="text-sm text-green-700 font-bold hover:underline">${post.originalPost.authorName || 'Anonymous'}</a></div></div><p class="text-gray-700 text-sm whitespace-pre-wrap original-post-text-p">${post.originalPost.text}</p>${post.originalPost.image ? `<img src="${post.originalPost.image}" class="mt-2 rounded max-h-80 object-contain w-full" />` : ""}</div>`;
+                }
+                postEl.innerHTML = `<div class="flex justify-between items-start"><div class="flex items-center mb-3"><div class="text-4xl w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full mr-3">${post.authorEmoji || '👤'}</div><div><a href="view_profile.html?uid=${post.uid}" class="text-md text-green-700 font-bold hover:underline">${post.authorName || 'Anonymous'}</a><p class="text-xs text-gray-500">${time}</p></div></div>${menuHtml}</div>${warningBannerHtml}<div class="text-gray-800 mt-1 whitespace-pre-wrap post-text">${postContentHtml}</div>${post.image ? `<img src="${post.image}" class="mt-2 rounded max-h-96 object-contain w-full post-image" />` : ""}${originalPostHtml}<div id="reactions-${post.key}" class="flex justify-around items-center mt-4 pt-3 text-sm border-t"><button id="btnBarakallah-${post.key}" class="reaction-btn text-red-600"><span>❤️</span><span>BarakAllah (0)</span></button><button id="btnSubhanallah-${post.key}" class="reaction-btn text-yellow-600"><span>🌟</span><span>SubhanAllah (0)</span></button><button id="btnAmeen-${post.key}" class="reaction-btn text-green-600"><span>🙌</span><span>Ameen (0)</span></button></div><div class="border-t mt-3 pt-3 flex justify-between items-center"><button id="toggle-comments-btn-${post.key}" onclick="toggleCommentSection('${post.key}')" class="text-sm font-semibold text-gray-600 hover:text-green-700">💬 Comments (${post.commentCount || 0})</button><button onclick="openShareModal('${post.key}')" class="text-sm font-semibold text-gray-600 hover:text-green-700">🔄 Share</button><button id="report-btn-${post.key}" onclick="toggleReportPost('${post.key}', '${post.uid}')" class="reaction-btn text-xs bg-red-50 hover:bg-red-100 text-red-700">Report (0)</button></div><div id="comment-section-wrapper-${post.key}" data-loaded="false" class="mt-3" style="display: none;"><div id="comments-container-${post.key}" class="space-y-2 mb-3 max-h-40 overflow-y-auto"></div><div class="flex space-x-2"><input id="comment-input-${post.key}" type="text" placeholder="Write a comment..." class="w-full p-2 border border-gray-300 rounded"><button onclick="addComment('${post.key}', '${post.uid}')" class="bg-green-600 hover:bg-green-700 text-white px-4 rounded font-semibold">Send</button></div></div>`;
+                feed.appendChild(postEl);
+                manageSeeMore(postEl);
+                if (post.originalPost) { manageOriginalPostSeeMore(postEl); }
+                attachReactionListeners(post.key); 
+                setupReportButton(post.key);
+                db.ref(`posts/${post.key}/commentCount`).on('value', snap => { const btn = document.getElementById(`toggle-comments-btn-${post.key}`); if(btn) btn.textContent = `💬 Comments (${snap.val() || 0})`; });
+            });
+
+            if (posts.length >= POSTS_PER_PAGE && filteredPosts.length > 0) { 
+                const loadMoreBtn = document.createElement('button'); 
+                loadMoreBtn.textContent = 'Load More'; 
+                loadMoreBtn.className = 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full'; 
+                loadMoreBtn.onclick = () => loadPosts(false);
+                loadMoreContainer.appendChild(loadMoreBtn); 
+            } else {
+                if (!isInitialLoad && filteredPosts.length > 0) { loadMoreContainer.innerHTML = '<p class="text-gray-500">You have reached the end.</p>'; }
+            }
+            isLoading = false; 
+            if (isRefreshing) resetPullToRefresh();
+        });
+    }
+
+    function openEditModal(postId) {
+        editingPostId = postId;
+        const postToEdit = postsData[postId];
+        if (!postToEdit || postToEdit.uid !== currentUserId) {
+            alert("Error: Post not found or you don't have permission.");
+            return;
+        }
+        document.getElementById('editPostText').value = postToEdit.text || '';
+        document.getElementById('editPostImage').value = postToEdit.image || '';
+        toggleModal('edit-post-modal-overlay');
+    }
+
+    function executeUpdate() {
+        if (!editingPostId) return;
+        const newText = document.getElementById('editPostText').value.trim();
+        const newImage = document.getElementById('editPostImage').value.trim();
+        if (newText === "" && newImage === "") {
+            alert("Post cannot be empty.");
+            return;
+        }
+        db.ref('posts/' + editingPostId).update({
+            text: newText,
+            image: newImage || null
+        }).then(() => {
+            toggleModal('edit-post-modal-overlay');
+            loadPosts(true);
+            editingPostId = null;
+        }).catch(error => {
+            alert("Error updating post: " + error.message);
+        });
+    }
+
+    function embedVideoPlayer(text) {
+        const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
+        const facebookRegex = /(?:https?:\/\/)?(?:www\.)?facebook\.com\/(?:[a-zA-Z0-9.]+\/videos\/|watch\/\?v=|video\.php\?v=)(\d{10,})/g;
+        let processedText = text;
+        const textOnly = processedText.replace(youtubeRegex, '').replace(facebookRegex, '').trim();
+        let videoHtml = '';
+        let ytMatch;
+        while ((ytMatch = youtubeRegex.exec(text)) !== null) {
+            videoHtml += `<div class="video-container"><iframe src="https://www.youtube.com/embed/${ytMatch[1]}?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+        }
+        let fbMatch;
+        while ((fbMatch = facebookRegex.exec(text)) !== null) {
+            videoHtml += `<div class="video-container"><iframe src="https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fvideos%2F${fbMatch[1]}%2F&show_text=0&width=560" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" allowfullscreen="true"></iframe></div>`;
+        }
+        return `${textOnly} ${videoHtml}`;
+    }
+
     function manageSeeMore(postElement) {
         const postTextElement = postElement.querySelector('.post-text');
         if (!postTextElement) return;
-
         const textWrapper = document.createElement('div');
         textWrapper.className = 'post-text-wrapper';
         postTextElement.parentNode.insertBefore(textWrapper, postTextElement);
         textWrapper.appendChild(postTextElement);
-
         const seeMoreButton = document.createElement('span');
         seeMoreButton.className = 'see-more-btn';
         seeMoreButton.innerText = 'See more...';
         textWrapper.appendChild(seeMoreButton);
-        
-        const collapsedHeight = window.innerHeight / 5;
-        if (postTextElement.scrollHeight > collapsedHeight) {
-            textWrapper.classList.add('collapsed');
-        } else {
-            seeMoreButton.style.display = 'none';
-        }
-
+        if (textWrapper.scrollHeight > window.innerHeight / 5) { textWrapper.classList.add('collapsed'); } 
+        else { seeMoreButton.style.display = 'none'; }
         seeMoreButton.addEventListener('click', (event) => {
             event.stopPropagation();
             textWrapper.classList.remove('collapsed');
-            textWrapper.style.maxHeight = postTextElement.scrollHeight + 'px';
+            textWrapper.style.maxHeight = textWrapper.scrollHeight + 'px';
             seeMoreButton.style.display = 'none';
         });
-
         textWrapper.addEventListener('dblclick', () => {
             if (!textWrapper.classList.contains('collapsed')) {
                 textWrapper.classList.add('collapsed');
@@ -292,62 +473,40 @@
         });
     }
 
-    // **** নতুন ফাংশন: শেয়ার করা পোস্টের ভেতরের লেখার জন্য ****
     function manageOriginalPostSeeMore(postElement) {
         const originalPostTextElement = postElement.querySelector('.original-post-text-p');
         if (!originalPostTextElement) return;
-
         const textWrapper = document.createElement('div');
         textWrapper.className = 'post-text-wrapper';
         originalPostTextElement.parentNode.insertBefore(textWrapper, originalPostTextElement);
         textWrapper.appendChild(originalPostTextElement);
-
         const seeMoreButton = document.createElement('span');
         seeMoreButton.className = 'see-more-btn';
         seeMoreButton.innerText = 'See more...';
         textWrapper.appendChild(seeMoreButton);
-
-        const collapsedHeight = window.innerHeight / 6; // উচ্চতা: স্ক্রিনের ৬ ভাগের ১ ভাগ
-        if (originalPostTextElement.scrollHeight > collapsedHeight) {
-            textWrapper.classList.add('collapsed');
-            textWrapper.style.maxHeight = collapsedHeight + 'px';
-        } else {
-            seeMoreButton.style.display = 'none';
-        }
-
+        if (textWrapper.scrollHeight > window.innerHeight / 6) { textWrapper.classList.add('collapsed'); textWrapper.style.maxHeight = (window.innerHeight / 6) + 'px'; } 
+        else { seeMoreButton.style.display = 'none'; }
         seeMoreButton.addEventListener('click', (event) => {
             event.stopPropagation();
             textWrapper.classList.remove('collapsed');
             textWrapper.style.maxHeight = originalPostTextElement.scrollHeight + 'px';
             seeMoreButton.style.display = 'none';
         });
-
-        textWrapper.addEventListener('dblclick', () => {
-            if (!textWrapper.classList.contains('collapsed')) {
-                textWrapper.classList.add('collapsed');
-                textWrapper.style.maxHeight = collapsedHeight + 'px';
-                seeMoreButton.style.display = 'block';
-            }
-        });
     }
 
-    let isRefreshing = false;
     function initPullToRefresh() {
         let touchStartY = 0;
         const refreshThreshold = 80;
         const indicator = document.getElementById('pull-to-refresh-indicator');
-        
         document.addEventListener('touchstart', e => {
             if (window.scrollY === 0 && !isRefreshing) { touchStartY = e.touches[0].clientY; } 
             else { touchStartY = 0; }
         }, { passive: true });
-
         document.addEventListener('touchmove', e => {
             if (touchStartY === 0 || isRefreshing) return;
             const pullDistance = e.touches[0].clientY - touchStartY;
             if (pullDistance > 0) { e.preventDefault(); indicator.classList.add('visible'); }
         }, { passive: false });
-
         document.addEventListener('touchend', e => {
             if (touchStartY === 0 || isRefreshing) return;
             const pullDistance = e.changedTouches[0].clientY - touchStartY;
@@ -368,14 +527,6 @@
         isRefreshing = false;
     }
 
-    function switchFeedMode(mode) {
-        if (isLoading || currentFeedMode === mode) return;
-        currentFeedMode = mode;
-        document.getElementById('btn-public-feed').classList.toggle('active', mode === 'public');
-        document.getElementById('btn-friends-feed').classList.toggle('active', mode === 'friends');
-        loadPosts(true);
-    }
-    
     async function loadFriendsList() {
         friendsList = [];
         const snapshot = await db.ref(`friends/${currentUserId}`).once('value');
@@ -419,7 +570,8 @@
             e.preventDefault(); hasDragged = true;
             const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
             let newTop = initialTop + (currentY - startY);
-            const topBoundary = 80, bottomBoundary = window.innerHeight / 2;
+            const topBoundary = 80;
+            const bottomBoundary = window.innerHeight / 2.5;
             if (newTop < topBoundary) newTop = topBoundary;
             if (newTop > bottomBoundary) newTop = bottomBoundary;
             menuContainer.style.top = newTop + 'px';
@@ -491,7 +643,7 @@
     function createPost() {
         const text = document.getElementById("postText").value.trim();
         const image = document.getElementById("postImage").value.trim();
-        if (!text) { alert("Write something first!"); return; }
+        if (!text && !image) { alert("Write something or add an image URL first!"); return; }
         if (!currentUserProfile.username) { alert("Your profile is still loading..."); return; }
         const postData = { text, image, uid: currentUserId, authorName: currentUserProfile.fullName, authorEmoji: currentUserProfile.profileEmoji, authorUsername: currentUserProfile.username, timestamp: firebase.database.ServerValue.TIMESTAMP, reportCount: 0, commentCount: 0 };
         const newPostKey = db.ref().child('posts').push().key;
@@ -514,21 +666,6 @@
             db.ref('userReports/' + postId).remove();
             const postElement = document.getElementById(`post-${postId}`);
             if(postElement) postElement.remove();
-        }
-    }
-
-    function editPost(postId) {
-        const postToEdit = postsData[postId];
-        if (!postToEdit || postToEdit.uid !== currentUserId) { alert("Error: Post not found or you don't have permission."); return; }
-        const newText = prompt("Edit your post:", postToEdit.text);
-        const newImage = prompt("Edit your image URL:", postToEdit.image || '');
-        if (newText !== null && newText.trim() !== '') {
-            db.ref('posts/' + postId).update({ text: newText.trim(), image: newImage ? newImage.trim() : null }).then(() => {
-               document.querySelector(`#post-${postId} .post-text`).textContent = newText.trim();
-               const imgEl = document.querySelector(`#post-${postId} .post-image`);
-               if(newImage && newImage.trim() !== '') { imgEl.src = newImage.trim(); imgEl.style.display = 'block'; } 
-               else if (imgEl) { imgEl.style.display = 'none'; }
-            });
         }
     }
     
@@ -594,20 +731,23 @@
     }
 
     function checkNotifications() {
-        const notificationsRef = db.ref('notifications/' + currentUserId);
+        const notificationsRef = db.ref('notifications/' + currentUserId).orderByChild('timestamp').limitToLast(20);
         const modalContent = document.getElementById('notification-modal-content');
         notificationsRef.once('value').then(snapshot => {
             if (!snapshot.exists()) { modalContent.innerHTML = '<p class="text-center">You have no new notifications.</p>'; } 
             else {
                 let messagesHtml = '<ul>';
                 const updates = {};
-                snapshot.forEach(child => {
-                    messagesHtml += `<li>${child.val().message}</li>`;
-                    updates[child.key + "/read"] = true;
+                const notifications = [];
+                snapshot.forEach(child => { notifications.unshift({key: child.key, ...child.val()}) });
+
+                notifications.forEach(notification => {
+                    messagesHtml += `<li class="border-l-2 ${notification.read ? 'border-gray-200' : 'border-green-400 font-semibold'} pl-2 mb-2">${notification.message}</li>`;
+                    if(!notification.read) { updates[notification.key + "/read"] = true; }
                 });
                 messagesHtml += '</ul>';
                 modalContent.innerHTML = messagesHtml;
-                notificationsRef.update(updates);
+                if(Object.keys(updates).length > 0) db.ref('notifications/' + currentUserId).update(updates);
             }
             toggleNotificationModal(true);
         });
@@ -696,89 +836,6 @@
         });
     }
     
-    function loadPosts(isInitialLoad = false) {
-        if (isLoading) return;
-        isLoading = true;
-        const feed = document.getElementById("feed");
-        const loadMoreContainer = document.getElementById("load-more-container");
-
-        if (isInitialLoad) {
-            feed.innerHTML = loadingSpinnerHtml;
-            postsData = {}; lastLoadedPostTimestamp = null; loadMoreContainer.innerHTML = "";
-        } else {
-            loadMoreContainer.innerHTML = loadingSpinnerHtml;
-        }
-
-        let query = db.ref("posts").orderByChild("timestamp");
-        if (lastLoadedPostTimestamp) { query = query.endAt(lastLoadedPostTimestamp - 1).limitToLast(POSTS_PER_PAGE); } 
-        else { query = query.limitToLast(POSTS_PER_PAGE); }
-        
-        query.once("value", snapshot => {
-            if (isInitialLoad) { feed.innerHTML = ""; }
-            loadMoreContainer.innerHTML = "";
-
-            if (!snapshot.exists()) {
-                if (isInitialLoad || feed.innerHTML === "") { feed.innerHTML = `<p class="text-center text-gray-500 py-10">No posts to show in the ${currentFeedMode} feed.</p>`; } 
-                else { loadMoreContainer.innerHTML = '<p class="text-gray-500">You have reached the end.</p>'; }
-                isLoading = false; if (isRefreshing) resetPullToRefresh(); return;
-            }
-            
-            const posts = [];
-            snapshot.forEach(child => { 
-                const post = { key: child.key, ...child.val() }; 
-                if (!postsData[post.key]) { posts.unshift(post); postsData[post.key] = post; } 
-            });
-
-            if (posts.length > 0) { lastLoadedPostTimestamp = posts[posts.length - 1].timestamp; }
-
-            const filteredPosts = (currentFeedMode === 'friends')
-                ? posts.filter(post => friendsList.includes(post.uid) || post.uid === currentUserId)
-                : posts;
-
-            if (filteredPosts.length === 0 && snapshot.numChildren() > 0) { isLoading = false; loadPosts(false); return; }
-
-            filteredPosts.forEach(post => {
-                if (!post.authorUsername) return;
-                const postEl = document.createElement("div"); 
-                postEl.id = `post-${post.key}`; postEl.className = "bg-white p-4 rounded-lg shadow";
-                const time = new Date(post.timestamp).toLocaleString();
-                let menuHtml = (post.uid === currentUserId) ? `<div class="post-menu float-right relative"><span class="text-gray-500 cursor-pointer text-lg">⋮</span><div class="post-menu-content"><a onclick="editPost('${post.key}')">Edit</a><a onclick="deletePost('${post.key}')">Delete</a></div></div>` : '';
-                let warningBannerHtml = (post.reportCount >= 5) ? `<div class="p-2 my-3 bg-red-100 border-l-4 border-red-500 text-red-700"><p class="font-bold">Warning:</p><p>This post is under review.</p></div>` : '';
-                
-                let originalPostHtml = '';
-                if (post.originalPost) {
-                    originalPostHtml = `<div class="mt-4 border-l-4 border-green-200 pl-3 pt-2 pb-3"><div class="flex items-center mb-2"><div class="text-2xl w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full mr-2">${post.originalPost.authorEmoji || '👤'}</div><div><a href="view_profile.html?uid=${post.originalPost.uid}" class="text-sm text-green-700 font-bold hover:underline">${post.originalPost.authorName || 'Anonymous'}</a></div></div><p class="text-gray-700 text-sm whitespace-pre-wrap original-post-text-p">${post.originalPost.text}</p>${post.originalPost.image ? `<img src="${post.originalPost.image}" class="mt-2 rounded max-h-80 object-contain w-full" />` : ""}</div>`;
-                }
-                
-                postEl.innerHTML = `<div class="flex justify-between items-start"><div class="flex items-center mb-3"><div class="text-4xl w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full mr-3">${post.authorEmoji || '👤'}</div><div><a href="view_profile.html?uid=${post.uid}" class="text-md text-green-700 font-bold hover:underline">${post.authorName || 'Anonymous'}</a><p class="text-xs text-gray-500">${time}</p></div></div>${menuHtml}</div>${warningBannerHtml}<p class="text-gray-800 mt-1 whitespace-pre-wrap post-text">${post.text}</p>${post.image ? `<img src="${post.image}" class="mt-2 rounded max-h-96 object-contain w-full post-image" />` : ""}${originalPostHtml}<div id="reactions-${post.key}" class="flex justify-around items-center mt-4 pt-3 text-sm border-t"><button id="btnBarakallah-${post.key}" class="reaction-btn text-red-600"><span>❤️</span><span>BarakAllah (0)</span></button><button id="btnSubhanallah-${post.key}" class="reaction-btn text-yellow-600"><span>🌟</span><span>SubhanAllah (0)</span></button><button id="btnAmeen-${post.key}" class="reaction-btn text-green-600"><span>🙌</span><span>Ameen (0)</span></button></div><div class="border-t mt-3 pt-3 flex justify-between items-center"><button id="toggle-comments-btn-${post.key}" onclick="toggleCommentSection('${post.key}')" class="text-sm font-semibold text-gray-600 hover:text-green-700">💬 Comments (${post.commentCount || 0})</button><button onclick="openShareModal('${post.key}')" class="text-sm font-semibold text-gray-600 hover:text-green-700">🔄 Share</button><button id="report-btn-${post.key}" onclick="toggleReportPost('${post.key}', '${post.uid}')" class="reaction-btn text-xs bg-red-50 hover:bg-red-100 text-red-700">Report (0)</button></div><div id="comment-section-wrapper-${post.key}" data-loaded="false" class="mt-3" style="display: none;"><div id="comments-container-${post.key}" class="space-y-2 mb-3 max-h-40 overflow-y-auto"></div><div class="flex space-x-2"><input id="comment-input-${post.key}" type="text" placeholder="Write a comment..." class="w-full p-2 border border-gray-300 rounded"><button onclick="addComment('${post.key}', '${post.uid}')" class="bg-green-600 hover:bg-green-700 text-white px-4 rounded font-semibold">Send</button></div></div>`;
-                feed.appendChild(postEl);
-                
-                // **** এখানে পরিবর্তন করা হয়েছে ****
-                manageSeeMore(postEl); // মূল পোস্টের জন্য কল করা হচ্ছে
-                if (post.originalPost) {
-                    manageOriginalPostSeeMore(postEl); // শেয়ার করা পোস্টের জন্য কল করা হচ্ছে
-                }
-                
-                attachReactionListeners(post.key); 
-                setupReportButton(post.key);
-                db.ref(`posts/${post.key}/commentCount`).on('value', snap => { const btn = document.getElementById(`toggle-comments-btn-${post.key}`); if(btn) btn.textContent = `💬 Comments (${snap.val() || 0})`; });
-            });
-
-            if (posts.length >= POSTS_PER_PAGE) { 
-                const loadMoreBtn = document.createElement('button'); 
-                loadMoreBtn.textContent = 'Load More'; 
-                loadMoreBtn.className = 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full'; 
-                loadMoreBtn.onclick = () => loadPosts(false);
-                loadMoreContainer.appendChild(loadMoreBtn); 
-            } else {
-                if (isInitialLoad && filteredPosts.length === 0) { feed.innerHTML = `<p class="text-center text-gray-500 py-10">No posts to show in the ${currentFeedMode} feed.</p>`; } 
-                else if (!isInitialLoad) { loadMoreContainer.innerHTML = '<p class="text-gray-500">You have reached the end.</p>'; }
-            }
-            isLoading = false; 
-            if (isRefreshing) resetPullToRefresh();
-        });
-    }
-
     function loadComments(postId) {
         const commentsContainer = document.getElementById(`comments-container-${postId}`); 
         if (!commentsContainer) return;
