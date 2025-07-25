@@ -15,44 +15,46 @@
           overflow: hidden;
       }
       #kalima-section.visible {
-          max-height: 500px; /* Adjust as needed */
+          max-height: 500px; /* প্রয়োজন অনুযায়ী পরিবর্তন করা যাবে */
           padding-top: 1rem;
           padding-bottom: 1rem;
       }
   </style>
 </head>
-<body class="bg-green-50 flex items-center justify-center min-h-screen px-4">
+<body class="bg-green-50 flex items-center justify-center min-h-screen px-4 py-8">
 
   <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
     <h1 class="text-3xl font-extrabold text-center text-green-700 mb-4">🕋 MuslimVerse</h1>
     <h2 class="text-lg font-semibold mb-4 text-center">✍️ Create Your Account</h2>
 
     <form onsubmit="signUp(); return false;">
-      <input id="fullName" type="text" placeholder="Full Name" required class="w-full p-3 border border-gray-300 rounded mb-3" />
-      <input id="username" type="text" placeholder="Username (e.g., ahmed123, no spaces)" required class="w-full p-3 border border-gray-300 rounded mb-3" />
-      <input id="email" type="email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded mb-3" />
-      <input id="password" type="password" placeholder="Password" required class="w-full p-3 border border-gray-300 rounded mb-3" />
+      <input id="fullName" type="text" placeholder="Full Name" required class="w-full p-3 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-300" />
+      <input id="username" type="text" placeholder="Username (e.g., ahmed123, no spaces)" required class="w-full p-3 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-300" />
+      <input id="email" type="email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-300" />
+      <input id="password" type="password" placeholder="Password (at least 6 characters)" required class="w-full p-3 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-300" />
       
-      <select id="religion" onchange="handleReligionChange()" required class="w-full p-3 border border-gray-300 rounded mb-2 bg-white">
+      <select id="religion" onchange="handleReligionChange()" required class="w-full p-3 border border-gray-300 rounded mb-2 bg-white focus:outline-none focus:ring-2 focus:ring-green-300">
         <option value="" selected disabled>-- Select your religion --</option>
         <option value="islam">Islam</option>
+        <!-- ভবিষ্যতে অন্যান্য অপশন যোগ করা যেতে পারে -->
       </select>
       
-      <!-- NEW: Kalima Shahadat Section (hidden by default) -->
+      <!-- কালিমা শাহাদাত সেকশন (ডিফল্টভাবে লুকানো) -->
       <div id="kalima-section">
           <div class="bg-green-50 p-4 rounded-lg border border-green-200 text-center">
               <p class="text-xl font-semibold text-green-800">أَشْهَدُ أَنْ لَا إِلَٰهَ إِلَّا ٱللَّٰهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا رَسُولُ ٱللَّٰهِ</p>
               <p class="text-sm text-gray-700 mt-2"><i>Ash-hadu an la ilaha illallah, wa ash-hadu anna Muhammadan Rasoolullah.</i></p>
-              <p class="text-sm text-gray-600 mt-2">"I bear witness that there is no god but Allah, and I bear witness that Muhammad is the Messenger of Allah."</p>
+              <p class="text-sm text-gray-600 mt-2">"আমি সাক্ষ্য দিচ্ছি যে, আল্লাহ ছাড়া কোনো উপাস্য নেই এবং আমি আরও সাক্ষ্য দিচ্ছি যে, মুহাম্মদ (সাঃ) আল্লাহর রাসূল।"</p>
           </div>
           <div class="mt-4 flex items-center">
               <input type="checkbox" id="agree-kalima" onchange="toggleSignUpButton()" class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
-              <label for="agree-kalima" class="ml-2 block text-sm text-gray-900">I agree and bear witness to the Kalima Shahadat.</label>
+              <label for="agree-kalima" class="ml-2 block text-sm text-gray-900">আমি কালিমা শাহাদাতের উপর বিশ্বাস স্থাপন করছি এবং সাক্ষ্য দিচ্ছি।</label>
           </div>
       </div>
       
-      <button id="signup-button" type="submit" disabled class="w-full bg-green-600 text-white p-3 rounded font-semibold hover:bg-green-700 transition duration-200 mt-4 disabled:bg-gray-400 disabled:cursor-not-allowed">
-        Sign Up
+      <button id="signup-button" type="submit" disabled class="w-full bg-green-600 text-white p-3 rounded font-semibold hover:bg-green-700 transition duration-200 mt-4 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center">
+        <span id="signup-btn-text">Sign Up</span>
+        <span id="signup-spinner" class="hidden w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin ml-2"></span>
       </button>
 
       <a href="login.html" class="block text-center text-green-700 mt-4 hover:underline font-medium">
@@ -60,7 +62,7 @@
       </a>
     </form>
 
-    <p id="signupStatus" class="text-sm mt-4 text-center text-red-600"></p>
+    <p id="signupStatus" class="text-sm mt-4 text-center"></p>
   </div>
 
   <script>
@@ -86,13 +88,20 @@
         } else {
             kalimaSection.classList.remove("visible");
         }
-        toggleSignUpButton();
+        toggleSignUpButton(); // প্রতিবার ধর্ম পরিবর্তন হলে বাটন চেক করবে
     }
 
     function toggleSignUpButton() {
+        const religion = document.getElementById("religion").value;
         const agreeCheckbox = document.getElementById("agree-kalima");
         const signUpButton = document.getElementById("signup-button");
-        signUpButton.disabled = !agreeCheckbox.checked;
+        
+        // যদি ধর্ম ইসলাম হয় এবং কালিমা চেক করা থাকে, তবেই বাটন এনাবল হবে
+        if (religion === "islam" && agreeCheckbox.checked) {
+            signUpButton.disabled = false;
+        } else {
+            signUpButton.disabled = true;
+        }
     }
 
     function signUp() {
@@ -104,43 +113,71 @@
       const agreeKalima = document.getElementById("agree-kalima").checked;
       const signupStatus = document.getElementById("signupStatus");
 
+      const signupBtn = document.getElementById("signup-button");
+      const signupBtnText = document.getElementById("signup-btn-text");
+      const signupSpinner = document.getElementById("signup-spinner");
+
+      // Validation
+      if (religion !== "islam" || !agreeKalima) {
+          signupStatus.style.color = 'red';
+          signupStatus.textContent = "❌ কালিমা শাহাদাত স্বীকার করা আবশ্যক।";
+          return;
+      }
+      if (!/^[a-z0-9_]+$/.test(username) || username.length < 3) {
+          signupStatus.style.color = 'red';
+          signupStatus.textContent = "❌ ইউজারনেম কমপক্ষে ৩ অক্ষরের হতে হবে এবং কোনো স্পেস থাকবে না।";
+          return;
+      }
+      
+      // Set loading state
+      signupBtn.disabled = true;
+      signupBtnText.textContent = "Creating Account...";
+      signupSpinner.classList.remove("hidden");
       signupStatus.textContent = "";
 
-      if (religion !== "islam" || !agreeKalima) {
-          signupStatus.textContent = "❌ You must agree to the Kalima Shahadat to create an account.";
-          return;
-      }
-      if (/\s/.test(username) || username.length < 3) {
-          signupStatus.textContent = "❌ Username must be at least 3 characters and have no spaces.";
-          return;
-      }
-
+      // Firebase Logic
       db.ref('usernames/' + username).once('value').then(snapshot => {
           if (snapshot.exists()) {
-              signupStatus.textContent = "❌ This username is already taken.";
-          } else {
-              auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    const profileData = {
-                        fullName: fullName,
-                        username: username,
-                        email: email,
-                        fullName_lowercase: fullName.toLowerCase(),
-                        bio: "",
-                        profileEmoji: "👤"
-                    };
-                    const updates = {};
-                    updates['/userProfiles/' + user.uid] = profileData;
-                    updates['/usernames/' + username] = { uid: user.uid };
-                    return db.ref().update(updates);
-                })
-                .then(() => {
-                    signupStatus.textContent = "✅ Account created successfully! Redirecting...";
-                    setTimeout(() => { window.location.href = "home.html"; }, 1500);
-                })
-                .catch((error) => { signupStatus.textContent = "❌ " + error.message; });
+              throw new Error("This username is already taken.");
           }
+          return auth.createUserWithEmailAndPassword(email, password);
+      })
+      .then((userCredential) => {
+          const user = userCredential.user;
+          const defaultEmoji = ['👤', '😊', '🌟', '💡', '🕌', '🕋'][Math.floor(Math.random() * 6)];
+          
+          const profileData = {
+              uid: user.uid,
+              fullName: fullName,
+              username: username,
+              email: email,
+              profileEmoji: defaultEmoji,
+              religion: religion
+          };
+
+          const updates = {};
+          updates['/userProfiles/' + user.uid] = profileData;
+          updates['/usernames/' + username] = { uid: user.uid };
+          return db.ref().update(updates);
+      })
+      .then(() => {
+          signupStatus.style.color = 'green';
+          signupStatus.textContent = "✅ অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে! আপনাকে লগইন পেজে নিয়ে যাওয়া হচ্ছে...";
+          
+          // Redirect to login page
+          setTimeout(() => {
+              window.location.href = "login.html";
+          }, 2000);
+      })
+      .catch((error) => {
+          signupStatus.style.color = 'red';
+          signupStatus.textContent = "❌ " + error.message;
+
+          // Reset button state
+          signupBtn.disabled = false;
+          signupBtnText.textContent = "Sign Up";
+          signupSpinner.classList.add("hidden");
+          toggleSignUpButton(); // Re-check if button should be enabled
       });
     }
   </script>
