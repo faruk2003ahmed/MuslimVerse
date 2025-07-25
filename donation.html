@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Donate – MuslimVerse</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .box {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+    }
+    .number {
+      background-color: #eef;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .info-btn {
+      display: inline-block;
+      background-color: #3498db;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 20px;
+      text-decoration: none;
+      font-size: 16px;
+    }
+    .info-btn:hover {
+      background-color: #2980b9;
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-top: 20px;
+      background-color: #2ecc71;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+    .back-btn:hover {
+      background-color: #27ae60;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .close:hover {
+      color: #000;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    footer {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 40px;
+      color: #777;
+    }
+
+    @media (max-width: 480px) {
+      .info-btn, .back-btn {
+        font-size: 15px;
+        padding: 10px 14px;
+      }
+      h1 {
+        font-size: 22px;
+      }
+      h2 {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🕋 MuslimVerse ডোনেশন</h1>
+
+    <div class="box">
+      <h2>সত্যিকারের একটি সার্বজনীন ও ভ্রাতৃত্বমূলক মুসলিম কমিউনিটি মিডিয়া গঠনে আপনার সহায়তা প্রয়োজন</h2>
+      <p>
+        MuslimVerse একটি ইসলামভিত্তিক সামাজিক মাধ্যম, যেখানে বিশ্বজুড়ে মুসলিম ভাই-বোনেরা নিরাপদ ও হালাল পরিবেশে সংযুক্ত হতে পারেন। এই উদ্যোগটি অলাভজনক ও জনকল্যাণমূলক।
+      </p>
+      <p>
+        আপনার খালিস নিয়তে দেওয়া ডোনেশন হতে পারে এই উম্মাহর জন্য একটি স্থায়ী সাদাকাহ।
+      </p>
+
+      <h3>🧾 ডোনেশন পাঠানোর ঠিকানা (মোবাইল ব্যাংকিং)</h3>
+
+      <div class="number">
+        বিকাশ (পার্সোনাল):<br />
+        📱 01540776686
+      </div>
+
+      <div class="number">
+        নগদ (পার্সোনাল):<br />
+        📱 01540776686
+      </div>
+
+      <!-- Info button -->
+      <div>
+        <a class="info-btn" onclick="openModal()">ℹ️ কেনো ডোনেশন প্রয়োজন?</a>
+      </div>
+
+      <!-- Back to Home button -->
+      <div>
+        <a href="home.html" class="back-btn">← হোমে ফিরে যান</a>
+      </div>
+
+      <p style="margin-top: 20px;">
+        🤲 আল্লাহ আপনাকে উত্তম প্রতিদান দিন।
+      </p>
+    </div>
+
+    <!-- Modal -->
+    <div id="donationModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3>📌 MuslimVerse-এর জন্য ডোনেশন কেনো প্রয়োজন?</h3>
+        <ul>
+          <li>🖥️ নিজস্ব স্থায়ী ও নিরাপদ সার্ভার পরিচালনার জন্য</li>
+          <li>🔧 প্রয়োজনীয় সফটওয়্যার ও হার্ডওয়্যার খরচের জন্য</li>
+          <li>🌐 ইন্টারনেট ও নেটওয়ার্ক কানেকশন ফি</li>
+          <li>🛠️ সাইট রক্ষণাবেক্ষণ ও উন্নয়ন খরচ</li>
+          <li>🕊️ Islamic content ব্যবস্থাপনা ও দাওয়াহ কার্যক্রম</li>
+        </ul>
+        <p>আপনার ছোট্ট একটি সহায়তাও হতে পারে বিশাল সাওয়াবের কারণ।</p>
+      </div>
+    </div>
+
+    <footer>
+      &copy; 2025 MuslimVerse | সমস্ত অধিকার সংরক্ষিত
+    </footer>
+  </div>
+
+  <script>
+    function openModal() {
+      document.getElementById("donationModal").style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("donationModal").style.display = "none";
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById("donationModal");
+      if (event.target == modal) {
+        closeModal();
+      }
+    };
+  </script>
+</body>
+</html>
